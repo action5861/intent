@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(PGPASSWORD='ljh04021!@' \"/c/Program Files/PostgreSQL/17/bin/psql\" -U postgres -h 127.0.0.1 -p 5432 -c \"SELECT current_user;\" 2>&1)",
+      "Bash(PGPASSWORD=ljh04021 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -h localhost -U postgres -d intendex_dev \\\\\n  -c \"SELECT id, company, category, \\\\\"rewardPerVisit\\\\\", \\\\\"totalBudget\\\\\", \\\\\"remainingBudget\\\\\", status, \\\\\"matchCount\\\\\" FROM advertisers WHERE id='cmmw610a10004tcewgczfy6qz';\" 2>&1)",
+      "Bash(PGPASSWORD=ljh04021 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -h localhost -U postgres -d intendex_dev \\\\\n  -c \"SELECT id, category, status, \\\\\"matchedAdvertiserId\\\\\", \\\\\"enrichedText\\\\\" FROM intents WHERE id='f7c40520-cd6f-49b7-a1e1-9719d6a094ba';\" 2>&1)",
+      "Bash(PGPASSWORD=ljh04021 \"C:/Program Files/PostgreSQL/17/bin/psql.exe\" -h localhost -U postgres -d intendex_dev \\\\\n  -c \"SELECT id, length\\(category\\), octet_length\\(category\\), status FROM advertisers WHERE id='cmmw6cap20005tcewjc0hcqs4';\" 2>&1)",
+      "Bash(node -e \"const a = require\\(''''autocannon''''\\); const inst = a\\({url:''''http://localhost:4000'''',connections:1,amount:1,method:''''GET''''}\\); inst.stop\\(\\);\")",
+      "Bash(cmd /c \"wmic process where name=''''node.exe'''' get commandline 2>nul\")",
+      "Bash(PGPASSWORD=ljh04021 psql -h localhost -p 5432 -U postgres -d intendex_dev -c \"SELECT company, category, keywords FROM \\\\\"Advertiser\\\\\" WHERE id = 'cmmt87g5x0000tc74mlnyhogb';\")",
+      "Bash(npx tsc:*)",
+      "Bash(PGPASSWORD=ljh04021 psql -h localhost -U postgres -d intendex_dev -c \"SELECT COUNT\\(*\\) FROM advertisers;\")"
+    ]
+  }
+}

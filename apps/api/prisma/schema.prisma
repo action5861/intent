@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum AdvertiserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+model User {
+  id                 String              @id @default(cuid())
+  name               String
+  email              String              @unique
+  passwordHash       String?
+  status             UserStatus          @default(ACTIVE)
+  totalIntents       Int                 @default(0)
+  rewardBalance      Int                 @default(0)
+  joinedAt           DateTime            @default(now())
+  withdrawalRequests WithdrawalRequest[]
+
+  @@map("users")
+}
+
+model Advertiser {
+  id              String           @id @default(cuid())
+  company         String
+  contactName     String
+  email           String           @unique
+  passwordHash    String?
+  category        String
+  keywords        String[]
+  siteDescription String?
+  siteUrl         String?
+  rewardPerVisit  Int              @default(500)
+  totalBudget     Int              @default(0)
+  remainingBudget Int              @default(0)
+  status          AdvertiserStatus @default(PENDING)
+  matchCount      Int              @default(0)
+  joinedAt        DateTime         @default(now())
+
+  @@map("advertisers")
+}
+
+model Intent {
+  id                  String   @id @default(uuid())
+  userId              String
+  rawText             String
+  enrichedText        String?
+  category            String?
+  details             Json?
+  expectedPrice       Int?
+  confidenceScore     Int?
+  actionType          String?
+  status                  String   @default("WAITING_MATCH")
+  matchedAdvertiserId     String?
+  paidReward              Int?
+  // [추천매칭 #1] 2·3등 추천 광고주 — [{ advertiserId, company, siteUrl, score, reason }]
+  recommendedAdvertisers  Json?
+  // [체류시간 #1] SLA 검증 완료 시각 및 실제 체류시간(ms)
+  slaVerifiedAt           DateTime?
+  dwellTimeMs             Int?
+  createdAt               DateTime @default(now())
+  // [의도삭제 #1] 사용자 소프트 딜리트 — DB/어드민에서는 보존
+  deletedByUser           Boolean  @default(false)
+
+  @@map("intents")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("admins")
+}
+
+model WithdrawalRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  amount        Int
+  bankName      String
+  accountNumber String
+  accountHolder String
+  status        String    @default("PENDING")
+  adminMemo     String?
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@map("withdrawal_requests")
+}

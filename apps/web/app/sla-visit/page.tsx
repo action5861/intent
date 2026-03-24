@@ -1,0 +1,340 @@
+"use client";
+
+import { useEffect, useRef, useState, Suspense, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift, Timer } from "lucide-react";
+import Script from "next/script";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "";
+const REQUIRED_MS = 20000;
+
+type Phase = "visiting" | "verifying" | "rewarded" | "done" | "error" | "already_done";
+
+function SlaVisitInner() {
+  const params = useSearchParams();
+  const router = useRouter();
+
+  const intentId = params.get("intentId") ?? "";
+  const siteUrl = params.get("siteUrl") ?? "";
+  const rewardPoints = Number(params.get("reward") ?? 0);
+
+  const [phase, setPhase] = useState<Phase>("visiting");
+  const [elapsed, setElapsed] = useState(0);
+  const [rewardAmount, setRewardAmount] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const startTimeRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clickTimestampRef = useRef(Date.now());
+  // [체류시간 #1] SLA 인증 완료 여부 추적 (타이머는 계속 돌아감)
+  const slaVerifiedRef = useRef(false);
+  const verifiedIntentIdRef = useRef<string>("");
+
+  // [체류시간 #1] 최종 체류시간을 서버에 전송
+  const sendFinalDwellTime = useCallback(() => {
+    if (!slaVerifiedRef.current || !verifiedIntentIdRef.current) return;
+    const token = localStorage.getItem("user_token");
+    if (!token) return;
+
+    const finalDwellTimeMs = Date.now() - startTimeRef.current;
+
+    // [체류시간 #1] keepalive fetch 사용 (sendBeacon은 커스텀 헤더 미지원)
+    const payload = JSON.stringify({ intentId: verifiedIntentIdRef.current, finalDwellTimeMs });
+    fetch(`${API_URL}/api/sla/update-duration`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // [체류시간 #1] startTimeRef 기반 실제 경과 시간 측정, 20초 후에도 계속 카운트
+  const startTimer = useCallback(() => {
+    stopTimer();
+    startTimeRef.current = Date.now();
+    clickTimestampRef.current = Date.now();
+
+    timerRef.current = setInterval(() => {
+      const realElapsed = Date.now() - startTimeRef.current;
+      setElapsed(realElapsed);
+
+      // [체류시간 #1] 20초 달성 → verifySla 호출, 타이머는 계속
+      if (realElapsed >= REQUIRED_MS && !slaVerifiedRef.current) {
+        verifySla(realElapsed);
+      }
+    }, 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopTimer]);
+
+  useEffect(() => {
+    if (!intentId || !siteUrl) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    window.open(siteUrl, "_blank", "noopener,noreferrer");
+    startTimer();
+
+    // [체류시간 #1] 페이지 이탈(beforeunload, visibilitychange) 시 최종 체류시간 전송
+    const handleBeforeUnload = () => sendFinalDwellTime();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") sendFinalDwellTime();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopTimer();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intentId, siteUrl]);
+
+  // [체류시간 #1] 실제 경과시간(ms)을 서버에 전송 (20000 하드코딩 제거)
+  const verifySla = async (actualElapsedMs: number) => {
+    slaVerifiedRef.current = true; // 중복 호출 방지
+    setPhase("verifying");
+    const token = localStorage.getItem("user_token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+    try {
+      let recaptchaToken: string;
+      if (process.env.NODE_ENV === "development") {
+        recaptchaToken = "dev-token-bypass";
+      } else {
+        recaptchaToken = await new Promise<string>((resolve, reject) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).grecaptcha.ready(async () => {
+            try {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const t = await (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "sla_verify" });
+              resolve(t);
+            } catch (err) {
+              reject(err);
+            }
+          });
+        });
+      }
+
+      const res = await fetch(`${API_URL}/api/sla/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          transactionId: intentId,
+          // [체류시간 #1] 실제 경과시간 전송 (하드코딩 제거)
+          accumulatedTimeMs: actualElapsedMs,
+          timestamp: Date.now(),
+          clickTimestamp: clickTimestampRef.current,
+          recaptchaToken,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setRewardAmount(data.data?.rewardAmount ?? 0);
+        verifiedIntentIdRef.current = intentId;
+        // [체류시간 #1] "적립 완료" UI 표시, 타이머는 백그라운드 계속
+        setPhase("rewarded");
+      } else if (res.status === 409) {
+        setPhase("already_done");
+      } else {
+        slaVerifiedRef.current = false; // 실패 시 재시도 허용
+        setErrorMsg(data.message ?? "검증에 실패했습니다.");
+        setPhase("error");
+      }
+    } catch {
+      slaVerifiedRef.current = false;
+      setErrorMsg("서버에 연결할 수 없습니다.");
+      setPhase("error");
+    }
+  };
+
+  // [체류시간 #1] "대시보드로 이동" 버튼 — 클릭 시 최종 체류시간 전송 후 이동
+  const handleGoToDashboard = () => {
+    sendFinalDwellTime();
+    stopTimer();
+    router.push("/dashboard");
+  };
+
+  const progress = Math.min((elapsed / REQUIRED_MS) * 100, 100);
+  const remaining = Math.max(0, Math.ceil((REQUIRED_MS - elapsed) / 1000));
+  // [체류시간 #1] 20초 이후 추가 체류시간 표시
+  const extraSeconds = Math.max(0, Math.floor((elapsed - REQUIRED_MS) / 1000));
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4">
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <Sparkles className="h-5 w-5 text-blue-400" />
+          <span className="text-lg font-bold text-white">Intendex</span>
+        </div>
+
+        {phase === "visiting" && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900 p-8 text-center">
+            <div className="mb-2 text-4xl font-black text-white">{remaining}초</div>
+            <p className="mb-6 text-sm text-slate-400">
+              광고주 사이트가 새 탭에서 열렸습니다.<br />
+              <span className="text-blue-400 font-medium">20초 후</span> 리워드 포인트가 자동으로 지급됩니다.
+            </p>
+
+            <div className="mb-6 h-3 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            {rewardPoints > 0 && (
+              <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+                <p className="text-xs text-slate-400">20초 체류 시 지급 리워드</p>
+                <p className="mt-1 text-xl font-bold text-blue-400">
+                  +{rewardPoints.toLocaleString("ko-KR")}P
+                </p>
+              </div>
+            )}
+
+            <p className="mt-4 text-xs text-slate-600">
+              새 탭이 열리지 않았다면{" "}
+              <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                여기를 클릭하세요
+              </a>
+            </p>
+          </div>
+        )}
+
+        {phase === "verifying" && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900 p-8 text-center">
+            <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-blue-400" />
+            <p className="text-white font-medium">리워드 검증 중...</p>
+            <p className="mt-2 text-sm text-slate-400">잠시만 기다려주세요.</p>
+          </div>
+        )}
+
+        {/* [체류시간 #1] 적립 완료 후 계속 체류 중 UI */}
+        {phase === "rewarded" && (
+          <div className="rounded-2xl border border-green-500/20 bg-slate-900 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+              <Gift className="h-8 w-8 text-green-400" />
+            </div>
+            <p className="text-xl font-bold text-white mb-1">리워드 적립 완료!</p>
+            <p className="mb-4 text-sm text-slate-400">20초 체류 조건이 달성되었습니다.</p>
+            <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-6 py-4 mb-4">
+              <p className="text-xs text-slate-400">획득한 리워드 포인트</p>
+              <p className="mt-1 text-3xl font-black text-green-400">+{rewardAmount.toLocaleString("ko-KR")}P</p>
+            </div>
+            {/* [체류시간 #1] 추가 체류시간 실시간 표시 */}
+            <div className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-slate-800/50 px-4 py-2">
+              <Timer className="h-4 w-4 text-slate-400" />
+              <span className="text-xs text-slate-400">추가 체류 중:</span>
+              <span className="text-sm font-bold text-slate-200">{extraSeconds}초</span>
+            </div>
+            <button
+              onClick={handleGoToDashboard}
+              className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+            >
+              대시보드에서 확인하기
+            </button>
+          </div>
+        )}
+
+        {phase === "done" && (
+          <div className="rounded-2xl border border-green-500/20 bg-slate-900 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+              <Gift className="h-8 w-8 text-green-400" />
+            </div>
+            <p className="text-xl font-bold text-white mb-1">리워드 지급 완료!</p>
+            <p className="mb-4 text-sm text-slate-400">20초 체류 조건이 달성되었습니다.</p>
+            <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-6 py-4 mb-6">
+              <p className="text-xs text-slate-400">획득한 리워드 포인트</p>
+              <p className="mt-1 text-3xl font-black text-green-400">+{rewardAmount.toLocaleString("ko-KR")}P</p>
+            </div>
+            <button
+              onClick={handleGoToDashboard}
+              className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+            >
+              대시보드에서 확인하기
+            </button>
+          </div>
+        )}
+
+        {phase === "already_done" && (
+          <div className="rounded-2xl border border-white/10 bg-slate-900 p-8 text-center">
+            <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-purple-400" />
+            <p className="text-white font-medium">이미 정산 완료된 의도입니다.</p>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="mt-6 w-full rounded-xl bg-slate-800 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >
+              대시보드로 돌아가기
+            </button>
+          </div>
+        )}
+
+        {phase === "error" && (
+          <div className="rounded-2xl border border-red-500/20 bg-slate-900 p-8 text-center">
+            <p className="mb-2 text-white font-medium">검증 실패</p>
+            <p className="mb-6 text-sm text-red-400">{errorMsg}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setPhase("visiting");
+                  setElapsed(0);
+                  window.open(siteUrl, "_blank", "noopener,noreferrer");
+                  startTimer();
+                }}
+                className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+              >
+                다시 시도
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="flex-1 rounded-xl border border-white/10 py-2.5 text-sm text-slate-300 hover:text-white transition-colors"
+              >
+                대시보드로
+              </button>
+            </div>
+          </div>
+        )}
+
+        {siteUrl && (phase === "visiting" || phase === "rewarded") && (
+          <div className="mt-4 flex items-center justify-center gap-1 text-xs text-slate-600">
+            <ExternalLink className="h-3 w-3" />
+            <span>방문 중: {siteUrl}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function SlaVisitPage() {
+  return (
+    <>
+      {process.env.NODE_ENV !== "development" && RECAPTCHA_SITE_KEY && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
+          strategy="beforeInteractive"
+        />
+      )}
+      <Suspense>
+        <SlaVisitInner />
+      </Suspense>
+    </>
+  );
+}
