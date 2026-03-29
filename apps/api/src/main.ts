@@ -46,9 +46,13 @@ async function bootstrap() {
 
   // PM2 cluster 모드에서 WebSocket을 프로세스 간 공유하기 위한 Redis Adapter 연결
   if (process.env.NODE_ENV === 'production') {
-    const redisIoAdapter = new RedisIoAdapter(app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
+    try {
+      const redisIoAdapter = new RedisIoAdapter(app);
+      await redisIoAdapter.connectToRedis();
+      app.useWebSocketAdapter(redisIoAdapter);
+    } catch (err) {
+      console.error('Redis IoAdapter 연결 실패, 기본 어댑터로 계속 실행:', err);
+    }
   }
 
   // 보안 헤더: HSTS, X-Frame-Options, X-Content-Type-Options, CSP 등
@@ -80,6 +84,6 @@ async function bootstrap() {
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 66000;
 
-  await app.listen(process.env.API_PORT ?? 4000);
+  await app.listen(process.env.PORT ?? process.env.API_PORT ?? 4000);
 }
 bootstrap();
