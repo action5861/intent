@@ -12,7 +12,8 @@ RUN pnpm install --frozen-lockfile --filter api...
 
 # 소스 복사 및 빌드
 COPY apps/api apps/api
-RUN cd apps/api && npx prisma generate
+# 빌드 시 DB 접속 불필요 — 더미 URL로 스키마 파싱만 수행
+RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 RUN cd apps/api && pnpm run build
 
 EXPOSE 4000
