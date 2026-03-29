@@ -1,0 +1,21 @@
+# [배포] Railway API 서버용 Dockerfile
+# dockerContext = "." (레포 루트) 기준으로 빌드됨
+FROM node:20-alpine
+WORKDIR /app
+
+RUN npm install -g pnpm@9.0.0
+
+# 의존성 레이어 캐시 최적화
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/
+RUN pnpm install --frozen-lockfile --filter api...
+
+# 소스 복사 및 빌드
+COPY apps/api apps/api
+RUN cd apps/api && npx prisma generate
+RUN cd apps/api && pnpm run build
+
+EXPOSE 4000
+
+# 시작 시 마이그레이션 자동 적용 후 서버 기동
+CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && node dist/main.js"]
