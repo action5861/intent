@@ -19,7 +19,10 @@ COPY apps/api apps/api
 RUN cd apps/api && npx prisma generate
 RUN cd apps/api && pnpm run build
 
+# 빌드 결과물 확인 (디버그 — 배포 안정화 후 삭제)
+RUN ls -la apps/api/dist/src/ || echo "dist/src not found"
+
 EXPOSE 4000
 
-# 시작 시 마이그레이션 자동 적용 후 서버 기동
-CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && node dist/main.js"]
+# 실제 빌드 출력: dist/src/main.js (tsconfig rootDir=src 설정에 의해 src 경로 유지)
+CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && node dist/src/main.js"]
