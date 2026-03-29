@@ -5,7 +5,7 @@ import { Search, Sparkles, Clock, CheckCircle2, Bot, RefreshCw, Megaphone, Exter
 import Link from "next/link";
 import { io, Socket } from "socket.io-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 
 // 사이트별 검색 URL 템플릿 — {query} 자리에 사용자 rawText가 삽입됨
 const SEARCH_URL_TEMPLATES: Record<string, string> = {

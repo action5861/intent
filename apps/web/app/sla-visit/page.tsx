@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift } from "lucide-react";
 import Script from "next/script";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "";
 const REQUIRED_MS = 20000;
 

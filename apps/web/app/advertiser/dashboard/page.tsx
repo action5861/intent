@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Zap, CheckCircle2, Clock, LogOut, RefreshCw, ShoppingBag, Bot, AlertTriangle, X } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 
 interface MatchedIntent {
   id: string;

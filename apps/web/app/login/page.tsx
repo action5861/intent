@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
