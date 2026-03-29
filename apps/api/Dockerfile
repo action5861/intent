@@ -5,6 +5,10 @@ WORKDIR /app
 
 RUN npm install -g pnpm@9.0.0
 
+# 빌드 타임 더미 DATABASE_URL — prisma generate/postinstall이 DB 없이 실행되도록
+# 실제 DATABASE_URL은 컨테이너 시작 시 Railway가 환경변수로 주입
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 # 의존성 레이어 캐시 최적화
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/
@@ -12,8 +16,7 @@ RUN pnpm install --frozen-lockfile --filter api...
 
 # 소스 복사 및 빌드
 COPY apps/api apps/api
-# 빌드 시 DB 접속 불필요 — 더미 URL로 스키마 파싱만 수행
-RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+RUN cd apps/api && npx prisma generate
 RUN cd apps/api && pnpm run build
 
 EXPOSE 4000
