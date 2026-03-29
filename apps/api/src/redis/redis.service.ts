@@ -17,19 +17,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   constructor() {
     // 1만명 규모 동시접속자를 고려한 커넥션 풀링 최적화 옵션
-    const redisOptions: RedisOptions = {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: Number(process.env.REDIS_PORT) || 6379,
+    const baseOptions: RedisOptions = {
       // 커넥션 타임아웃 방지 및 자동 재연결
-      retryStrategy: (times) => Math.min(times * 50, 2000), 
+      retryStrategy: (times) => Math.min(times * 50, 2000),
       maxRetriesPerRequest: 50,
       enableReadyCheck: true,
       keepAlive: 10000,
     };
 
-    this.redisClient = new Redis(redisOptions);
-    this.publisherClient = new Redis(redisOptions);
-    this.subscriberClient = new Redis(redisOptions);
+    const redisUrl = process.env.REDIS_URL;
+    const redisOptions: RedisOptions = redisUrl
+      ? { ...baseOptions }
+      : {
+          ...baseOptions,
+          host: process.env.REDIS_HOST || 'localhost',
+          port: Number(process.env.REDIS_PORT) || 6379,
+          password: process.env.REDIS_PASSWORD || undefined,
+        };
+
+    this.redisClient = redisUrl ? new Redis(redisUrl, redisOptions) : new Redis(redisOptions);
+    this.publisherClient = redisUrl ? new Redis(redisUrl, redisOptions) : new Redis(redisOptions);
+    this.subscriberClient = redisUrl ? new Redis(redisUrl, redisOptions) : new Redis(redisOptions);
 
     this.setupErrorHandling(this.redisClient, 'Main');
     this.setupErrorHandling(this.publisherClient, 'Publisher');

@@ -11,12 +11,19 @@ class RedisIoAdapter extends IoAdapter {
   private adapterConstructor!: ReturnType<typeof createAdapter>;
 
   async connectToRedis(): Promise<void> {
-    const host = process.env.REDIS_HOST ?? 'localhost';
-    const port = Number(process.env.REDIS_PORT ?? 6379);
-    const url  = `redis://${host}:${port}`;
+    const redisUrl = process.env.REDIS_URL;
+    const clientOptions = redisUrl
+      ? { url: redisUrl }
+      : {
+          socket: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: Number(process.env.REDIS_PORT) || 6379,
+          },
+          password: process.env.REDIS_PASSWORD || undefined,
+        };
 
     // Redis Adapter는 pub/sub 전용 2개 클라이언트가 필요
-    const pubClient = createClient({ url });
+    const pubClient = createClient(clientOptions);
     const subClient = pubClient.duplicate();
 
     await Promise.all([pubClient.connect(), subClient.connect()]);
