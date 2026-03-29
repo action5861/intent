@@ -9,4 +9,10 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  // [배포 #5] Railway 헬스체크 엔드포인트 — Guard 없이 공개 접근
+  @Get('api/health')
+  healthCheck(): { status: string; timestamp: number } {
+    return { status: 'ok', timestamp: Date.now() };
+  }
 }
