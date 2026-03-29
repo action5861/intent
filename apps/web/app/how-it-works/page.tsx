@@ -6,7 +6,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-/* ── 8단계 가이드 슬라이더 ───────────────────────────── */
+/* ── 7단계 가이드 슬라이더 ───────────────────────────── */
 const GUIDE_SLIDES = [
   {
     step: "STEP 01",
@@ -52,13 +52,6 @@ const GUIDE_SLIDES = [
   },
   {
     step: "STEP 07",
-    title: "추가 체류 시간도 자동 기록",
-    description: "리워드가 적립된 후에도 광고주 사이트에 머물면 실제 체류시간이 계속 기록됩니다. 화면 하단에 '방문 중: 사이트 주소'가 표시되며 정상 기록 중임을 알 수 있습니다.",
-    image: "/guide/step7.png",
-    tip: "충분히 둘러봤다면 '대시보드에서 확인하기' 버튼을 눌러 이동하세요.",
-  },
-  {
-    step: "STEP 08",
     title: "대시보드에서 포인트 지급 확인",
     description: "대시보드로 돌아오면 의도 카드의 상태가 '리워드 지급'으로 바뀌고 '+500P 지급 완료' 배지가 표시됩니다. 포인트가 10,000P 이상 쌓이면 현금 인출 신청이 가능합니다.",
     image: "/guide/step8.png",
@@ -551,7 +544,7 @@ export default function HowItWorksPage() {
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">화면으로 따라하는 이용 가이드</h2>
             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              실제 서비스 화면 8장을 순서대로 따라가면 처음도 어렵지 않습니다.
+              실제 서비스 화면 7장을 순서대로 따라가면 처음도 어렵지 않습니다.
               <br className="hidden sm:block" />
               좌우 화살표 또는 키보드 ← → 로 이동하세요.
             </p>

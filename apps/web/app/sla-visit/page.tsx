@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift, Timer } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift } from "lucide-react";
 import Script from "next/script";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -24,30 +24,32 @@ function SlaVisitInner() {
   const [rewardAmount, setRewardAmount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const startTimeRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const clickTimestampRef = useRef(Date.now());
-  // [체류시간 #1] SLA 인증 완료 여부 추적 (타이머는 계속 돌아감)
   const slaVerifiedRef = useRef(false);
   const verifiedIntentIdRef = useRef<string>("");
 
-  // [체류시간 #1] 최종 체류시간을 서버에 전송
+  // 광고주 탭에 있는 동안만 누적 — SLA 페이지 visible 시 카운팅 중단
+  const accumulatedMsRef = useRef<number>(0);
+  const hiddenAtRef = useRef<number | null>(null);
+
+  const getElapsedMs = useCallback(() => {
+    const inProgress = hiddenAtRef.current !== null ? Date.now() - hiddenAtRef.current : 0;
+    return accumulatedMsRef.current + inProgress;
+  }, []);
+
   const sendFinalDwellTime = useCallback(() => {
     if (!slaVerifiedRef.current || !verifiedIntentIdRef.current) return;
     const token = localStorage.getItem("user_token");
     if (!token) return;
-
-    const finalDwellTimeMs = Date.now() - startTimeRef.current;
-
-    // [체류시간 #1] keepalive fetch 사용 (sendBeacon은 커스텀 헤더 미지원)
-    const payload = JSON.stringify({ intentId: verifiedIntentIdRef.current, finalDwellTimeMs });
+    const payload = JSON.stringify({ intentId: verifiedIntentIdRef.current, finalDwellTimeMs: getElapsedMs() });
     fetch(`${API_URL}/api/sla/update-duration`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: payload,
       keepalive: true,
     }).catch(() => {});
-  }, []);
+  }, [getElapsedMs]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -56,23 +58,21 @@ function SlaVisitInner() {
     }
   }, []);
 
-  // [체류시간 #1] startTimeRef 기반 실제 경과 시간 측정, 20초 후에도 계속 카운트
   const startTimer = useCallback(() => {
     stopTimer();
-    startTimeRef.current = Date.now();
+    accumulatedMsRef.current = 0;
+    hiddenAtRef.current = null;
     clickTimestampRef.current = Date.now();
 
     timerRef.current = setInterval(() => {
-      const realElapsed = Date.now() - startTimeRef.current;
-      setElapsed(realElapsed);
-
-      // [체류시간 #1] 20초 달성 → verifySla 호출, 타이머는 계속
-      if (realElapsed >= REQUIRED_MS && !slaVerifiedRef.current) {
-        verifySla(realElapsed);
+      const ms = getElapsedMs();
+      setElapsed(ms);
+      if (ms >= REQUIRED_MS && !slaVerifiedRef.current) {
+        verifySla(ms);
       }
     }, 100);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stopTimer]);
+  }, [stopTimer, getElapsedMs]);
 
   useEffect(() => {
     if (!intentId || !siteUrl) {
@@ -83,24 +83,33 @@ function SlaVisitInner() {
     window.open(siteUrl, "_blank", "noopener,noreferrer");
     startTimer();
 
-    // [체류시간 #1] 페이지 이탈(beforeunload, visibilitychange) 시 최종 체류시간 전송
-    const handleBeforeUnload = () => sendFinalDwellTime();
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") sendFinalDwellTime();
+      if (document.visibilityState === "hidden") {
+        // 광고주 탭으로 전환 — 누적 시작
+        hiddenAtRef.current = Date.now();
+      } else {
+        // SLA 페이지로 복귀 — 누적 중단
+        if (hiddenAtRef.current !== null) {
+          accumulatedMsRef.current += Date.now() - hiddenAtRef.current;
+          hiddenAtRef.current = null;
+        }
+        sendFinalDwellTime();
+      }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const handleBeforeUnload = () => sendFinalDwellTime();
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       stopTimer();
-      window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intentId, siteUrl]);
 
-  // [체류시간 #1] 실제 경과시간(ms)을 서버에 전송 (20000 하드코딩 제거)
   const verifySla = async (actualElapsedMs: number) => {
     slaVerifiedRef.current = true; // 중복 호출 방지
     setPhase("verifying");
@@ -149,7 +158,7 @@ function SlaVisitInner() {
       if (res.ok) {
         setRewardAmount(data.data?.rewardAmount ?? 0);
         verifiedIntentIdRef.current = intentId;
-        // [체류시간 #1] "적립 완료" UI 표시, 타이머는 백그라운드 계속
+        stopTimer();
         setPhase("rewarded");
       } else if (res.status === 409) {
         setPhase("already_done");
@@ -174,8 +183,6 @@ function SlaVisitInner() {
 
   const progress = Math.min((elapsed / REQUIRED_MS) * 100, 100);
   const remaining = Math.max(0, Math.ceil((REQUIRED_MS - elapsed) / 1000));
-  // [체류시간 #1] 20초 이후 추가 체류시간 표시
-  const extraSeconds = Math.max(0, Math.floor((elapsed - REQUIRED_MS) / 1000));
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4">
@@ -237,12 +244,6 @@ function SlaVisitInner() {
             <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-6 py-4 mb-4">
               <p className="text-xs text-slate-400">획득한 리워드 포인트</p>
               <p className="mt-1 text-3xl font-black text-green-400">+{rewardAmount.toLocaleString("ko-KR")}P</p>
-            </div>
-            {/* [체류시간 #1] 추가 체류시간 실시간 표시 */}
-            <div className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-white/5 bg-slate-800/50 px-4 py-2">
-              <Timer className="h-4 w-4 text-slate-400" />
-              <span className="text-xs text-slate-400">추가 체류 중:</span>
-              <span className="text-sm font-bold text-slate-200">{extraSeconds}초</span>
             </div>
             <button
               onClick={handleGoToDashboard}

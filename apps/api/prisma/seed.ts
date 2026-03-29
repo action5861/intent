@@ -7,8 +7,12 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   // Admin 계정 생성 (이미 있으면 건너뜀)
+  // [배포준비 #3] 프로덕션에서 ADMIN_PASSWORD 미설정 시 시드 거부 — 기본값 하드코딩 제거
   const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin1234!';
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error('[배포준비 #3] ADMIN_PASSWORD environment variable must be set before seeding');
+  }
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
   await prisma.admin.upsert({

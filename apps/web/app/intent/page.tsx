@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Bot, Send, ArrowRight, CheckCircle } from "lucide-react";
+import { Sparkles, Bot, Send, ArrowRight, CheckCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +13,7 @@ type Message = {
 };
 
 type ChatState = "chatting" | "ready" | "submitting" | "done";
+// [필터링 #1] reject 상태는 별도 플래그로 관리 — chatting 유지하되 등록 버튼 숨김
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
@@ -25,6 +26,7 @@ export default function IntentPage() {
   const [state, setState] = useState<ChatState>("chatting");
   const [enrichedText, setEnrichedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRejected, setIsRejected] = useState(false); // [필터링 #2] 마지막 응답이 reject였는지
   const [userId, setUserId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +60,7 @@ export default function IntentPage() {
     setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
+    setIsRejected(false); // [필터링 #3] 새 메시지 입력 시 reject 상태 초기화 → 자연스럽게 대화 이어감
 
     try {
       const token = localStorage.getItem("user_token");
@@ -81,6 +84,9 @@ export default function IntentPage() {
       if (data.type === "ready") {
         setEnrichedText(data.enrichedText ?? text);
         setState("ready");
+      } else if (data.type === "reject") {
+        // [필터링 #4] reject: 메시지 표시 + 다시시작 버튼 노출, state는 chatting 유지
+        setIsRejected(true);
       }
     } catch (err: any) {
       setMessages((prev) => [
@@ -124,6 +130,15 @@ export default function IntentPage() {
       ]);
       setState("ready");
     }
+  };
+
+  // [필터링 #5] 다시 시작하기 — 대화 초기화
+  const handleReset = () => {
+    setMessages([INITIAL_MESSAGE]);
+    setInput("");
+    setState("chatting");
+    setIsRejected(false);
+    setEnrichedText("");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -199,6 +214,19 @@ export default function IntentPage() {
                   <span className="h-2 w-2 animate-bounce rounded-full bg-slate-500 [animation-delay:300ms]" />
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Reject state: 다시 시작하기 버튼 — 등록하기 버튼 표시 안 함, 입력창은 유지 */}
+          {isRejected && state === "chatting" && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800 px-6 py-2.5 text-sm font-medium text-slate-300 transition-all hover:border-slate-400 hover:text-white"
+              >
+                <RotateCcw className="h-4 w-4" />
+                다시 시작하기
+              </button>
             </div>
           )}
 

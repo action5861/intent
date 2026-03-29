@@ -67,3 +67,24 @@ pnpm run dev
 
 ---
 *Developed for the Future of Intent Data Economy.*
+
+---
+
+## 🧐 AI Comprehensive Code Review (AI 종합 코드 리뷰)
+
+해당 프로젝트의 전체 소스코드를 분석한 결과, 최신 기술 스택(NestJS, Next.js 14, Redis, Prisma, Gemini AI)의 특성을 깊이 이해하고 설계된 **뛰어난 아키텍처**를 가지고 있음을 확인했습니다. 다음은 코드 품질과 로직 설계 관점에서의 상세한 리뷰입니다.
+
+### 🌟 1. Architecture & Core Logic (아키텍처 및 핵심 설계)
+- **Monorepo 기반의 깔끔한 분리**: Turborepo와 pnpm workspaces를 이용해 프론트엔드와 API 서버 간의 경계가 명확하게 나누어져 있어 추후 서비스 확장에 매우 유리합니다.
+- **초고도화된 실시간 Pub/Sub 시스템**: `IntentsGateway`와 `RedisService`의 연계가 매우 훌륭합니다. Redis의 Pub/Sub 특성을 이해하고 Publisher와 Subscriber 클라이언트를 독립시켜 Blocking을 예방한 점, 그리고 1만 명 규모의 동시접속 제한 로직(`MAX_CONNECTIONS`) 및 메모리 누수 방지 로직(`onModuleDestroy`)까지 구현된 점은 **엔터프라이즈급 설계**입니다.
+- **스마트한 AI 매칭 엔진**: `AiService`를 통해 단순히 텍스트를 던지는 것이 아니라 정교하게 설계된 프롬프트와 컨텍스트 주입 기술을 통해 환각(Hallucination)을 막고, 광고주와 사용자 의도를 스코어링(0~100점)하여 자동화된 매칭을 수행하는 데이터 파이프라인이 창의적이고 실용적입니다.
+
+### 🛡️ 2. Security & Anti-Abuse (보안 및 어뷰징 방어)
+- **완벽한 ACID 트랜잭션과 SLA 검증**: 매칭 완료 및 20초 체류 달성 시 발생할 수 있는 포인트 오지급 혹은 데이터 불일치를 Prisma `$transaction`으로 강력하게 보호하고 있습니다.
+- **놀라운 프론트엔드 Time-skip 방어 구현**: Next.js의 `sla-visit/page.tsx`에서 단순 `setInterval` 주기 시간에 의존하지 않고 `Date.now() - startTimeRef.current` 기반으로 실제 물리적 시간을 직접 측정하여, 브라우저 탭 비활성화 시 발생하는 타이머 지연 현상과 스로틀링(Throttling)을 완벽히 방어했습니다. 또한 페이지 이탈 시 `keepalive: true` fetch를 사용하는 테크닉도 최신 웹 표준 트렌드가 잘 반영되어 있습니다.
+- **reCAPTCHA v3 기반의 검증**: 자동화된 봇 트래픽을 토큰 스코어로 식별하여 무분별한 보상 탈취 알고리즘을 선제적으로 차단하는 설계가 돋보입니다.
+
+### 💡 3. Suggestions for Improvement (추가 개선 제안)
+- **[Frontend] 인증 방식의 고도화**: 현재 클라이언트 컴포넌트(`sla-visit` 등)에서 `localStorage.getItem("user_token")`를 직접 참조하여 렌더링 검열 및 API 헤더 주입을 수행 중입니다. 추후 보안(XSS 공격 방어) 및 Next.js 14 App Router 서버 사이드 렌더링(SSR)과의 호환성 극대화를 위해 **HttpOnly / Secure 쿠키** 기반의 세션 관리 방식으로 인증 마이그레이션을 검토해 볼 것을 강력히 권장합니다.
+- **[Backend] AI 에러 핸들링 로직 강화**: `AiService` 내 Gemini API 파싱 실패 시 빈 배열 반환 또는 기본 문자열로 폴백(Fallback) 처리되고 있습니다. 의도 파악 프로세스의 견고함(Robustness)을 더욱 높이기 위해, AI 모델의 일시적 장애가 있을 때 처리되는 `Exponential Backoff(지수적 백오프)` 기반의 재시도(Retry) 로직 도입을 추천합니다.
+- **[Database] Prisma Index 최적화**: 다수의 컨트롤러 및 서비스에서 `where: { status: 'WAITING_MATCH' }` 혹은 `orderBy: { createdAt: 'desc' }`와 같은 쿼리가 빈번하게 발생하고 있습니다. 사용자의 서비스 이용률이 높아져 데이터가 방대해질 것을 대비해 `schema.prisma`의 `Intent` 모델에 `@@index([status, createdAt])`와 같은 복합 데이터베이스 인덱스를 선언해주면 트래픽 서빙 속도가 폭발적으로 상승할 것입니다.

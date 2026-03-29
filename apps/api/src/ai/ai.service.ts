@@ -2,7 +2,6 @@ import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common
 import { GoogleGenAI } from '@google/genai';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { CATEGORIES_STRING } from '../common/categories.constants';
 
 @Injectable()
 export class AiService {
@@ -19,8 +18,34 @@ export class AiService {
 3. 응답은 오직, 단 하나의 유효한 JSON 객체 형태({ ... })여야 합니다.
 4. **절대로** \`\`\`json 이나 마크다운 블록, 혹은 부가적인 텍스트 설명이나 인사말 등을 앞뒤에 붙이지 마십시오. 순수한 JSON 문자열 값만 출력하세요.
 
-[카테고리 목록] 반드시 아래 목록 중 하나만 사용하세요. 목록에 없는 값은 절대 사용 금지.
-${CATEGORIES_STRING}
+// [카테고리개선 #1] 카테고리별 분류 가이드 추가 — "기타" 남용 방지, 경계 케이스 명시
+[카테고리 목록 및 분류 가이드] 반드시 아래 15개 중 하나만 사용하세요. "기타"는 아래 14개에 진짜 해당하지 않을 때만 사용하세요.
+
+- 전자기기: 핸드폰, 노트북, 태블릿, 가전제품, IT기기, 소프트웨어(개발도구·업무용), 카메라, 이어폰, 스피커 (※ 음악·영상·게임 구독 서비스는 쇼핑으로 분류)
+- 패션: 의류, 신발, 가방, 지갑, 액세서리, 시계, 스포츠웨어, 아웃도어 의류
+- 식품: 음식, 배달음식, 식료품, 간식, 건강식품, 홍삼, 비타민, 영양제, 식재료, 밀키트
+- 여행: 항공권, 호텔, 숙박, 렌트카, 관광, 펜션, 해외여행, 국내여행, 여행패키지
+- 부동산: 아파트, 전세, 월세, 매매, 이사, 인테리어, 리모델링, 분양, 오피스텔
+- 금융: 대출, 신용카드, 적금, 예금, 투자, 주식, 증권, 펀드, 가상화폐, 재테크
+- 보험: 자동차보험, 암보험, 실비보험, 생명보험, 화재보험, 건강보험, 여행자보험
+- 자동차: 신차, 중고차, 자동차 구매, 전기차, SUV, 세단, 자동차 관리, 튜닝
+- 뷰티: 화장품, 스킨케어, 메이크업, 헤어케어, 네일, 향수, 피부 관리, 미용
+- 교육: 학원, 온라인강의, 자격증, 토익, 영어, 수학, 과외, 취업준비, 채용, 이직, 커리어
+- 의료: 병원, 치과, 한의원, 건강검진, 수술, 약국, 의약품, 재활, 정신건강
+- 법률: 변호사, 법무사, 세무사, 소송, 법률상담, 이혼, 상속, 계약서, 특허
+- 쇼핑: 온라인쇼핑몰, 최저가 비교, 오픈마켓, 해외직구, 공동구매, 쿠폰, 할인, 음악/영상/게임 구독 서비스(멜론·넷플릭스·유튜브뮤직 등), 앱스토어
+- 비영리: 기부, 봉사활동, NGO, 종교, 사회적 기업, 환경, 공익 캠페인
+
+[분류 경계 케이스 가이드]
+- 건강식품(홍삼·비타민·영양제) → 식품 (병원·치료 목적이면 의료)
+- 운동·스포츠용품 → 패션 (스포츠웨어), 운동 관련 건강 목적이면 의료
+- 채용·구인구직·이직·커리어 → 교육
+- 뉴스·미디어·언론 → 기타 (직접 서비스 없음)
+- 커뮤니티·SNS·플랫폼 → 기타 (직접 서비스 없음)
+- 음악 스트리밍(멜론·지니뮤직·유튜브뮤직·애플뮤직 등) → 쇼핑 (구독 서비스)
+- OTT·영상 스트리밍(넷플릭스·왓챠·티빙·쿠팡플레이 등) → 쇼핑 (구독 서비스)
+- 게임 구독·앱마켓(원스토어·구글플레이 등) → 쇼핑 (구독/앱 서비스)
+- 렌트카(여행용) → 여행, 장기렌트·리스(소유 목적) → 자동차
 
 [출력 JSON 구조 (예시)]
 {
@@ -50,6 +75,14 @@ ${CATEGORIES_STRING}
 3. 이미 언급된 정보는 절대 다시 묻지 마세요.
 4. 사용자가 질문 순서나 내용을 지적하면 즉시 수용하고 해당 정보를 먼저 물어보세요.
 5. 딱딱한 존댓말 대신 친근하지만 예의 바른 말투를 사용하세요.
+6. 사용자의 메시지가 구매, 서비스 이용, 예약, 비교, 추천 등 상업적 의도가 아닌 경우 정중하게 안내하세요. [필터링 #1]
+   등록 불가 예시:
+   - 날씨, 시간 등 단순 정보 질문: '내일 날씨 알려줘', '지금 몇 시야'
+   - 상식, 역사, 과학 등 지식 질문: '세종대왕이 누구야', '지구 둘레가 얼마야'
+   - 일상 대화, 감정 표현: '심심해', '안녕하세요', '재미있는 얘기 해줘'
+   - 불법/부적절한 요청
+   ※ 애매한 경우 바로 reject하지 말고 question으로 한 번 더 확인하세요. '우산 사고 싶어' 같은 상업적 의도는 reject 금지. [필터링 #2]
+   이런 경우 reject 응답을 반환하세요.
 
 [수집 목표 — 광고주 타겟팅 기준]
 아래 3가지 중 최소 2가지가 "구체적"으로 수집되면 ready입니다:
@@ -75,9 +108,10 @@ C. 구체적 조건 — 용도, 지역, 스펙, 시기 등 (예: "출퇴근용",
 - 광고주가 읽고 바로 타겟팅 판단할 수 있는 한 문단으로 작성
 - 없는 정보를 지어내지 마세요
 
-[응답 형식] 반드시 아래 JSON 중 하나만 출력. JSON 외 텍스트 금지.
+[응답 형식] 반드시 아래 JSON 중 하나만 출력. JSON 외 텍스트 금지. [필터링 #3]
 정보 부족: {"type":"question","message":"질문 (1~2문장, 자연스럽게)"}
 충분한 정보: {"type":"ready","message":"감사 메시지 (1문장)","enrichedText":"수집된 정보 기반 상세 의도 설명 (광고주 타겟팅용, 한 문단)"}
+상업적 의도 아닌 경우: {"type":"reject","message":"안내 메시지 (친근하게, 어떤 것을 등록할 수 있는지 예시 포함)"}
 `;
 
   /**
@@ -88,7 +122,7 @@ C. 구체적 조건 — 용도, 지역, 스펙, 시기 등 (예: "출퇴근용",
     messages: { role: string; content: string }[],
     advertiserContext?: string,
   ): Promise<{
-    type: 'question' | 'ready';
+    type: 'question' | 'ready' | 'reject';
     message: string;
     enrichedText?: string;
   }> {
@@ -129,12 +163,30 @@ C. 구체적 조건 — 용도, 지역, 스펙, 시기 등 (예: "출퇴근용",
     }
 
     // [대화개선 #4] JSON 파싱 실패 시 raw 텍스트를 question으로 반환 (500 방지)
-    let parsed: { type: 'question' | 'ready'; message: string; enrichedText?: string };
+    let parsed: { type: 'question' | 'ready' | 'reject'; message: string; enrichedText?: string };
     try {
       parsed = JSON.parse(responseText);
     } catch {
       this.logger.warn(`Dialog JSON parse failed, using raw response: ${responseText}`);
       return { type: 'question', message: responseText || '조금 더 자세히 말씀해 주시겠어요?' };
+    }
+
+    // [필터링 #4] 강제 ready 상황에서도 reject는 그대로 통과 — 비상업적 대화는 강제 등록하지 않음
+    if (parsed.type === 'reject') {
+      return parsed;
+    }
+
+    // [필터링 #5] 4회째 강제 ready 시 현재까지 대화에 상업적 의도가 없으면 reject 반환
+    if (forceReady && parsed.type === 'question') {
+      const allUserMessages = messages.filter((m) => m.role === 'user').map((m) => m.content).join(' ');
+      const hasCommercialKeyword = /구매|사고|싶어|추천|비교|예약|찾고|알아보|주문|신청|등록|견적|상담|이용|서비스/.test(allUserMessages);
+      if (!hasCommercialKeyword) {
+        this.logger.warn(`[필터링 #5] No commercial intent detected after ${userMessageCount} turns — returning reject`);
+        return {
+          type: 'reject',
+          message: '아쉽지만 상업적 의도가 없는 대화는 등록이 어려워요. 쇼핑, 여행, 교육 같은 서비스 이용 의도를 말씀해 주시면 도와드릴게요!',
+        };
+      }
     }
 
     // [대화개선 #2] 강제 ready 상황인데 Gemini가 question을 반환한 경우 코드에서 강제 전환
@@ -199,8 +251,11 @@ ${conversationText}`;
 
       let parsedJson;
       try {
-        // 만약 LLM이 지시를 무시하고 마크다운을 붙였다면 최소한의 정제 처리 (안전망)
-        const cleanedText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        // 마크다운 제거 + Gemini 오염 패턴 수정 (""key" → "key)
+        const cleanedText = responseText
+          .replace(/```json/g, '').replace(/```/g, '')
+          .replace(/""/g, '"')   // ""keywords" → "keywords"
+          .trim();
         parsedJson = JSON.parse(cleanedText);
       } catch (parseError) {
         this.logger.error('Failed to parse Gemini response into JSON', parseError);
@@ -257,23 +312,46 @@ ${advertiserList}
 - 사용자 의도와 광고주 카테고리/키워드/비즈니스 설명의 일치도
 - 사용자가 해당 광고주 서비스/상품에 실제 관심을 가질 가능성
 - 구매 단계(탐색/비교/구매)와 광고주 타겟의 일치 여부
+- [채용매칭 #5] 뉴스/언론/포털 사이트(네이버, 다음, 구글 등)는 정보 제공 목적이므로, 사용자가 직접적인 서비스(구매, 채용, 쇼핑, 예약, 배달 등)를 원하는 경우 해당 서비스를 직접 제공하는 광고주를 우선하세요. 포털/검색 사이트는 구매 의도가 명확한 경우 반드시 60점 미만으로 평가하세요.
+- [직접판매 우선] 사용자가 특정 상품(사료, 분유, 의류, 전자기기 등)을 구매/추천 요청할 경우, 해당 상품을 직접 판매하는 쇼핑몰/전문몰을 포털·커뮤니티보다 최우선으로 높게 평가하세요.
 - 0~100점 (70점 이상 = 매칭 추천)
 
 반드시 아래 형식의 순수 JSON 배열만 출력. 마크다운 금지.
 [{"advertiserId":"id값","score":85,"reason":"매칭 이유 한 문장"}]`;
 
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const result = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
-      const cleaned = (result.text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-      this.logger.debug(`[Matching] Scored ${parsed.length} advertisers for intent`);
-      return parsed;
-    } catch (err) {
-      this.logger.error('Advertiser ranking failed', err);
-      // [개선 #3] AI 실패 시 빈 배열 반환 → 호출부에서 매칭 중단 처리
-      return [];
+    // [속도개선 #2] 빠른 모델 우선 시도, 404 시 다음 모델로 자동 폴백
+    const SCORING_MODELS = ['gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-2.5-flash'];
+    // [속도개선 #4] 재시도 딜레이 1500ms → 500ms, 최대 3회 → 2회
+    const MAX_RETRIES = 2;
+    const RETRY_DELAY_MS = 500;
+
+    for (const model of SCORING_MODELS) {
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        const t0 = Date.now();
+        try {
+          const ai = new GoogleGenAI({ apiKey });
+          const result = await ai.models.generateContent({ model, contents: prompt });
+          const cleaned = (result.text ?? '').replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleaned);
+          this.logger.log(`[PERF] Scoring done — model: ${model}, advertisers: ${parsed.length}, elapsed: ${Date.now() - t0}ms`);
+          return parsed;
+        } catch (err) {
+          if (err?.status === 404) {
+            this.logger.warn(`[Matching] Model ${model} not available, trying next...`);
+            break; // 다음 모델로
+          }
+          const isRetryable = err?.status === 500 || err?.status === 503 || err?.status === 429;
+          if (isRetryable && attempt < MAX_RETRIES) {
+            this.logger.warn(`[Matching] ${model} error (attempt ${attempt}/${MAX_RETRIES}), retrying in ${RETRY_DELAY_MS * attempt}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * attempt));
+            continue;
+          }
+          this.logger.error(`Advertiser ranking failed (model: ${model})`, err);
+          break; // 재시도 소진 → 다음 모델로
+        }
+      }
     }
+    return [];
   }
 
   /**
@@ -310,6 +388,7 @@ ${advertiserList}
       siteText = `URL: ${url}`;
     }
 
+    // [카테고리개선 #1] 분류 가이드 동기화 — MASTER_PROMPT와 동일한 기준 적용
     const prompt = `
 당신은 광고주 웹사이트를 분석하여 광고 타겟팅에 필요한 정보를 추출하는 전문가입니다.
 아래 웹사이트 내용을 분석하여 반드시 순수 JSON만 출력하세요. 마크다운 블록 금지.
@@ -318,9 +397,26 @@ ${advertiserList}
 URL: ${url}
 내용: ${siteText}
 
+[카테고리 목록 및 분류 가이드] 반드시 아래 15개 중 하나만 사용하세요. "기타"는 아래 14개에 진짜 해당하지 않을 때만 사용하세요.
+- 전자기기: 핸드폰, 노트북, 태블릿, 가전제품, IT기기, 소프트웨어(개발도구·업무용)
+- 패션: 의류, 신발, 가방, 액세서리, 시계, 스포츠웨어, 아웃도어 의류
+- 식품: 음식, 배달음식, 식료품, 간식, 건강식품, 홍삼, 비타민, 영양제
+- 여행: 항공권, 호텔, 숙박, 렌트카(여행용), 관광, 펜션, 여행패키지
+- 부동산: 아파트, 전세, 월세, 매매, 이사, 인테리어, 분양
+- 금융: 대출, 신용카드, 적금, 투자, 주식, 증권, 펀드, 재테크
+- 보험: 자동차보험, 암보험, 실비보험, 생명보험, 건강보험
+- 자동차: 신차, 중고차, 전기차, 자동차 구매, 장기렌트, 리스
+- 뷰티: 화장품, 스킨케어, 메이크업, 헤어케어, 네일, 향수
+- 교육: 학원, 온라인강의, 자격증, 취업준비, 채용, 이직, 커리어
+- 의료: 병원, 치과, 한의원, 건강검진, 약국, 의약품, 재활
+- 법률: 변호사, 법무사, 세무사, 소송, 법률상담, 특허
+- 쇼핑: 온라인쇼핑몰, 최저가 비교, 오픈마켓, 해외직구, 할인, 음악/영상/게임 구독 서비스(멜론·넷플릭스 등), 앱스토어
+- 비영리: 기부, 봉사활동, NGO, 종교, 환경, 공익 캠페인
+- 기타: 뉴스/언론, 커뮤니티/SNS처럼 위 14개에 해당하지 않는 경우만
+
 [출력 JSON 구조]
 {
-  "category": "반드시 다음 목록 중 하나: ${CATEGORIES_STRING}",
+  "category": "위 카테고리 목록 중 하나",
   "description": "이 광고주가 어떤 사용자 의도를 타겟팅하기에 적합한지 2~3문장 설명",
   "keywords": ["타겟팅에 적합한 키워드 3~5개 배열"],
   "suggestedCompany": "웹사이트에서 파악되는 회사명 (파악 불가시 null)"

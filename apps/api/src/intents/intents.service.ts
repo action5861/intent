@@ -100,31 +100,51 @@ export class IntentsService {
       ? `${baseIntentText} (예상 예산: ${expectedPrice.toLocaleString('ko-KR')}원)`
       : baseIntentText;
 
-    // [매칭개선 #1] 카테고리 일치 광고주를 take 이전에 우선 조회
-    // — 광고주 수가 많아도 해당 카테고리는 반드시 포함되도록 2단계 조회
-    const CANDIDATE_LIMIT = 20;
+    // [속도개선 #3] 후보 수 20 → 12로 축소 (키워드 5 + 카테고리 5 + 기타 2)
+    // 프롬프트 토큰 절감 → 스코어링 시간 비례 감소
+    const KW_LIMIT = 5;
+    const CAT_LIMIT = 5;
+    const OTHER_LIMIT = 2;
     const baseWhere = { status: 'ACTIVE' as const, remainingBudget: { gt: 0 } };
     const selectFields = {
       id: true, company: true, category: true, keywords: true,
       siteDescription: true, siteUrl: true, rewardPerVisit: true, remainingBudget: true,
     };
 
-    const categoryMatched = await this.prisma.advertiser.findMany({
-      where: { ...baseWhere, category },
-      select: selectFields,
-      take: CANDIDATE_LIMIT,
-    });
-
-    const remaining = CANDIDATE_LIMIT - categoryMatched.length;
-    const otherCandidates = remaining > 0
+    // [채용매칭 #1] 키워드 일치 광고주를 최우선 조회
+    const intentKeywords: string[] = parsedIntent.details?.keywords ?? [];
+    const keywordMatched = intentKeywords.length > 0
       ? await this.prisma.advertiser.findMany({
-          where: { ...baseWhere, category: { not: category } },
+          where: {
+            ...baseWhere,
+            keywords: { hasSome: intentKeywords },
+          },
           select: selectFields,
-          take: remaining,
+          take: KW_LIMIT,
         })
       : [];
 
-    const candidates = [...categoryMatched, ...otherCandidates];
+    const keywordMatchedIds = new Set(keywordMatched.map((a) => a.id));
+
+    const categoryMatched = await this.prisma.advertiser.findMany({
+      where: { ...baseWhere, category, id: { notIn: [...keywordMatchedIds] } },
+      select: selectFields,
+      take: CAT_LIMIT,
+    });
+
+    const categoryMatchedIds = new Set(categoryMatched.map((a) => a.id));
+
+    const otherCandidates = await this.prisma.advertiser.findMany({
+      where: {
+        ...baseWhere,
+        category: { not: category },
+        id: { notIn: [...keywordMatchedIds, ...categoryMatchedIds] },
+      },
+      select: selectFields,
+      take: OTHER_LIMIT,
+    });
+
+    const candidates = [...keywordMatched, ...categoryMatched, ...otherCandidates];
 
     if (candidates.length === 0) {
       this.logger.log(`[AI Matching] No candidate advertisers for intent [${intentId}] (category: ${category})`);
@@ -174,17 +194,21 @@ export class IntentsService {
 
     this.logger.log(`[AI Matching] Auto-matching intent [${intentId}] with advertiser [${topMatch.advertiserId}] (score: ${topMatch.score})`);
 
-    // [추천매칭 #2] 2·3등 추천 광고주 추출 (1등 제외, 최대 2개)
-    const recommended = qualified.slice(1, 3).map((s) => {
-      const adv = candidates.find((c) => c.id === s.advertiserId);
-      return {
-        advertiserId: s.advertiserId,
-        company: adv?.company ?? null,
-        siteUrl: adv?.siteUrl ?? null,
-        score: s.score,
-        reason: s.reason,
-      };
-    });
+    // 추천 광고주: 1등 제외, 50점 이상, 최대 2개 (자동매칭 70점보다 완화)
+    const recommended = scores
+      .filter((s) => s.score >= 50 && s.advertiserId !== topMatch!.advertiserId)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2)
+      .map((s) => {
+        const adv = candidates.find((c) => c.id === s.advertiserId);
+        return {
+          advertiserId: s.advertiserId,
+          company: adv?.company ?? null,
+          siteUrl: adv?.siteUrl ?? null,
+          score: s.score,
+          reason: s.reason,
+        };
+      });
 
     // 자동 매칭 트랜잭션 실행
     await this.dbService.executeMatchTransaction(intentId, topMatch.advertiserId);
@@ -321,6 +345,8 @@ export class IntentsService {
       '교육': ['학원', '인강', '토익', '영어', '수학', '과외', '자격증'],
       '법률': ['변호사', '법률', '상담', '소송'],
       '쇼핑': ['쇼핑', '최저가', '할인', '배송'],
+      // [채용매칭 #2] 채용/구인구직 의도 → '기타' 카테고리 광고주(사람인, 잡코리아, 원티드) 우선 조회
+      '기타': ['채용', '구인', '구직', '이력서', '면접', '연봉', '취업', '인사', '경력직', '신입', '헤드헌터'],
     };
 
     const categories: string[] = [];

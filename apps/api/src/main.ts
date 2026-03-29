@@ -31,6 +31,16 @@ class RedisIoAdapter extends IoAdapter {
 }
 
 async function bootstrap() {
+  // [배포준비 #2] 프로덕션 필수 환경변수 검증 — 미설정 시 서버 기동 거부
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('[배포준비 #2] JWT_SECRET must be set in production');
+    }
+    if (!process.env.ADMIN_PASSWORD) {
+      throw new Error('[배포준비 #3] ADMIN_PASSWORD must be set in production');
+    }
+  }
+
   const app = await NestFactory.create(AppModule);
 
   // PM2 cluster 모드에서 WebSocket을 프로세스 간 공유하기 위한 Redis Adapter 연결
