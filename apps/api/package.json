@@ -19,7 +19,7 @@
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "npx prisma migrate deploy && node dist/main",
     "start:cluster": "npm run build && pm2 start ecosystem.config.js --env production",
     "stop:cluster": "pm2 delete intendex-api",
     "reload:cluster": "pm2 reload intendex-api",
