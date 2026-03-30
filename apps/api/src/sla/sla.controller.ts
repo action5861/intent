@@ -1,7 +1,6 @@
 import { Controller, Post, Patch, Body, HttpCode, HttpStatus, BadRequestException, Logger, UseGuards, Req } from '@nestjs/common';
 import { SlaService } from './sla.service';
 import { UserGuard } from '../auth/user.guard';
-import axios from 'axios';
 
 @Controller('api/sla')
 export class SlaController {
@@ -29,12 +28,8 @@ export class SlaController {
       throw new BadRequestException('Invalid SLA verification payload. Missing security tokens.');
     }
 
-    // [보안 1] reCAPTCHA v3 검증
-    const recaptchaScore = await this.verifyRecaptcha(payload.recaptchaToken);
-    if (recaptchaScore < 0.5) {
-      this.logger.warn(`[SECURITY] Bot detected! reCAPTCHA score: ${recaptchaScore}`);
-      throw new BadRequestException('Suspicious bot activity detected. Request rejected.');
-    }
+    // [임시] reCAPTCHA 검증 완전 스킵 — Enterprise 연동 후 복원
+    const recaptchaScore = 1.0;
 
     // [보안 2] 타임스탬프 조작 검증
     // 물리적으로 20초가 흐르지 않았는데 달성 핑이 오면 스크립트 조작 시도
@@ -76,40 +71,5 @@ export class SlaController {
     return { success: true, data: result };
   }
 
-  /**
-   * reCAPTCHA v3 토큰 검증
-   * - RECAPTCHA_SECRET_KEY 환경변수가 있으면 Google API 실제 호출
-   * - 없으면 개발 환경 fallback (토큰 길이 기반 점수)
-   */
-  private async verifyRecaptcha(token: string): Promise<number> {
-    const apiKey = process.env.RECAPTCHA_API_KEY;
-    const siteKey = process.env.RECAPTCHA_SITE_KEY;
-
-    // dev-token-bypass 토큰이거나, API 키가 없으면 검증 스킵
-    if (token?.startsWith('dev-') || !apiKey || !siteKey) {
-      this.logger.warn('[reCAPTCHA Enterprise] Skipping verification (dev bypass or no API key) — score=1.0');
-      return 1.0;
-    }
-
-    try {
-      const response = await axios.post(
-        `https://recaptchaenterprise.googleapis.com/v1/projects/gen-lang-client-0256964543/assessments?key=${apiKey}`,
-        {
-          event: {
-            token,
-            expectedAction: 'sla_verify',
-            siteKey,
-          },
-        },
-      );
-      const valid = response.data.tokenProperties?.valid ?? false;
-      const score = response.data.riskAnalysis?.score ?? 0;
-      this.logger.debug(`[reCAPTCHA Enterprise] score=${score}, valid=${valid}`);
-      return valid ? score : 0;
-    } catch (err) {
-      this.logger.error('[reCAPTCHA Enterprise] API call failed', err);
-      return 0;
-    }
-  }
 }
 

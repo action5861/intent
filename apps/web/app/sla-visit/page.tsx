@@ -119,24 +119,8 @@ function SlaVisitInner() {
       return;
     }
     try {
-      const recaptchaToken = await new Promise<string>((resolve, reject) => {
-        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-        if (!siteKey || siteKey === "" || process.env.NODE_ENV === "development") {
-          resolve("dev-token-bypass");
-          return;
-        }
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).grecaptcha.enterprise.ready(() => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).grecaptcha.enterprise.execute(siteKey, { action: "sla_verify" })
-              .then(resolve)
-              .catch(reject);
-          });
-        } catch (err) {
-          resolve("dev-token-bypass");
-        }
-      });
+      // [임시] reCAPTCHA 검증 완전 스킵 — Enterprise 연동 후 복원
+      const recaptchaToken = 'skip-recaptcha';
 
       const res = await fetch(`${API_URL}/api/sla/verify`, {
         method: "POST",
