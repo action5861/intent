@@ -82,25 +82,32 @@ export class SlaController {
    * - 없으면 개발 환경 fallback (토큰 길이 기반 점수)
    */
   private async verifyRecaptcha(token: string): Promise<number> {
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const apiKey = process.env.RECAPTCHA_API_KEY;
+    const siteKey = process.env.RECAPTCHA_SITE_KEY;
 
-    // dev-token-bypass 토큰이거나, RECAPTCHA_SECRET_KEY가 dev-bypass이거나, 키가 없으면 검증 스킵
-    if (token?.startsWith('dev-') || secretKey === 'dev-bypass' || !secretKey) {
-      this.logger.warn('[reCAPTCHA] Skipping verification (dev bypass or no secret key) — score=1.0');
+    // dev-token-bypass 토큰이거나, API 키가 없으면 검증 스킵
+    if (token?.startsWith('dev-') || !apiKey || !siteKey) {
+      this.logger.warn('[reCAPTCHA Enterprise] Skipping verification (dev bypass or no API key) — score=1.0');
       return 1.0;
     }
 
     try {
-      // secret은 URL이 아닌 POST body로 전송 (로그/프록시 노출 방지)
       const response = await axios.post(
-        'https://www.google.com/recaptcha/api/siteverify',
-        new URLSearchParams({ secret: secretKey, response: token }),
+        `https://recaptchaenterprise.googleapis.com/v1/projects/gen-lang-client-0256964543/assessments?key=${apiKey}`,
+        {
+          event: {
+            token,
+            expectedAction: 'sla_verify',
+            siteKey,
+          },
+        },
       );
-      const { success, score } = response.data;
-      this.logger.debug(`[reCAPTCHA] score=${score}, success=${success}`);
-      return success ? (score ?? 0) : 0;
+      const valid = response.data.tokenProperties?.valid ?? false;
+      const score = response.data.riskAnalysis?.score ?? 0;
+      this.logger.debug(`[reCAPTCHA Enterprise] score=${score}, valid=${valid}`);
+      return valid ? score : 0;
     } catch (err) {
-      this.logger.error('[reCAPTCHA] Google API call failed', err);
+      this.logger.error('[reCAPTCHA Enterprise] API call failed', err);
       return 0;
     }
   }

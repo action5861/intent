@@ -127,9 +127,9 @@ function SlaVisitInner() {
         }
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).grecaptcha.ready(() => {
+          (window as any).grecaptcha.enterprise.ready(() => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (window as any).grecaptcha.execute(siteKey, { action: "sla_verify" })
+            (window as any).grecaptcha.enterprise.execute(siteKey, { action: "sla_verify" })
               .then(resolve)
               .catch(reject);
           });
@@ -330,7 +330,7 @@ export default function SlaVisitPage() {
     <>
       {process.env.NODE_ENV !== "development" && RECAPTCHA_SITE_KEY && (
         <Script
-          src={`https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`}
+          src={`https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`}
           strategy="beforeInteractive"
         />
       )}
