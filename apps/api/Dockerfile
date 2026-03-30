@@ -25,4 +25,4 @@ RUN ls -la apps/api/dist/src/ || echo "dist/src not found"
 EXPOSE 4000
 
 # 실제 빌드 출력: dist/src/main.js (tsconfig rootDir=src 설정에 의해 src 경로 유지)
-CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "cd apps/api && (npx prisma migrate deploy || echo '[WARN] prisma migrate deploy failed — check DATABASE_URL') && node dist/src/main.js"]

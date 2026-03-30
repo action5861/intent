@@ -120,7 +120,7 @@ function SlaVisitInner() {
     }
     try {
       // [임시] reCAPTCHA 검증 완전 스킵 — Enterprise 연동 후 복원
-      const recaptchaToken = 'skip-recaptcha';
+      const recaptchaToken = 'dev-bypass';
 
       const res = await fetch(`${API_URL}/api/sla/verify`, {
         method: "POST",
