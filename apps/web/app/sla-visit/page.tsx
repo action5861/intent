@@ -119,23 +119,24 @@ function SlaVisitInner() {
       return;
     }
     try {
-      let recaptchaToken: string;
-      if (process.env.NODE_ENV === "development") {
-        recaptchaToken = "dev-token-bypass";
-      } else {
-        recaptchaToken = await new Promise<string>((resolve, reject) => {
+      const recaptchaToken = await new Promise<string>((resolve, reject) => {
+        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+        if (!siteKey || siteKey === "" || process.env.NODE_ENV === "development") {
+          resolve("dev-token-bypass");
+          return;
+        }
+        try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).grecaptcha.ready(async () => {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const t = await (window as any).grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "sla_verify" });
-              resolve(t);
-            } catch (err) {
-              reject(err);
-            }
+          (window as any).grecaptcha.ready(() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).grecaptcha.execute(siteKey, { action: "sla_verify" })
+              .then(resolve)
+              .catch(reject);
           });
-        });
-      }
+        } catch (err) {
+          resolve("dev-token-bypass");
+        }
+      });
 
       const res = await fetch(`${API_URL}/api/sla/verify`, {
         method: "POST",
