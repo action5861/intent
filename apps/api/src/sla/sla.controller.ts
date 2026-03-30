@@ -82,27 +82,17 @@ export class SlaController {
    * - 없으면 개발 환경 fallback (토큰 길이 기반 점수)
    */
   private async verifyRecaptcha(token: string): Promise<number> {
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    // dev bypass: 운영 환경에서는 절대 허용하지 않음
-    if (token.startsWith('dev-')) {
-      if (isProduction) {
-        this.logger.warn('[reCAPTCHA] Dev bypass attempted in PRODUCTION — rejected');
-        return 0;
-      }
-      this.logger.warn('[reCAPTCHA] Dev bypass token — skipping verification (dev only)');
-      return 0.9;
-    }
-
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
+    // RECAPTCHA_SECRET_KEY가 "dev-bypass"이면 환경 무관하게 검증 스킵
+    if (secretKey === 'dev-bypass') {
+      this.logger.warn('[reCAPTCHA] RECAPTCHA_SECRET_KEY=dev-bypass — skipping verification (score=1.0)');
+      return 1.0;
+    }
+
     if (!secretKey) {
-      if (isProduction) {
-        this.logger.error('[reCAPTCHA] RECAPTCHA_SECRET_KEY not set in production — rejecting all requests');
-        return 0;
-      }
-      this.logger.warn('[reCAPTCHA] RECAPTCHA_SECRET_KEY not set — using dev fallback score');
-      return token.length > 5 ? 0.9 : 0.1;
+      this.logger.error('[reCAPTCHA] RECAPTCHA_SECRET_KEY not set — rejecting all requests');
+      return 0;
     }
 
     try {
