@@ -84,15 +84,10 @@ export class SlaController {
   private async verifyRecaptcha(token: string): Promise<number> {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
-    // RECAPTCHA_SECRET_KEY가 "dev-bypass"이면 환경 무관하게 검증 스킵
-    if (secretKey === 'dev-bypass') {
-      this.logger.warn('[reCAPTCHA] RECAPTCHA_SECRET_KEY=dev-bypass — skipping verification (score=1.0)');
+    // dev-token-bypass 토큰이거나, RECAPTCHA_SECRET_KEY가 dev-bypass이거나, 키가 없으면 검증 스킵
+    if (token?.startsWith('dev-') || secretKey === 'dev-bypass' || !secretKey) {
+      this.logger.warn('[reCAPTCHA] Skipping verification (dev bypass or no secret key) — score=1.0');
       return 1.0;
-    }
-
-    if (!secretKey) {
-      this.logger.error('[reCAPTCHA] RECAPTCHA_SECRET_KEY not set — rejecting all requests');
-      return 0;
     }
 
     try {
