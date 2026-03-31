@@ -9,7 +9,12 @@
       "Bash(cmd /c \"wmic process where name=''''node.exe'''' get commandline 2>nul\")",
       "Bash(PGPASSWORD=ljh04021 psql -h localhost -p 5432 -U postgres -d intendex_dev -c \"SELECT company, category, keywords FROM \\\\\"Advertiser\\\\\" WHERE id = 'cmmt87g5x0000tc74mlnyhogb';\")",
       "Bash(npx tsc:*)",
-      "Bash(PGPASSWORD=ljh04021 psql -h localhost -U postgres -d intendex_dev -c \"SELECT COUNT\\(*\\) FROM advertisers;\")"
+      "Bash(PGPASSWORD=ljh04021 psql -h localhost -U postgres -d intendex_dev -c \"SELECT COUNT\\(*\\) FROM advertisers;\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" postgresql://postgres:ljh04021@localhost:5432/intendex_dev -c \"SELECT id, company, category, keywords, \"\"siteUrl\"\", \"\"siteDescription\"\" FROM advertisers ORDER BY category, company;\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" postgresql://postgres:ljh04021@localhost:5432/intendex_dev -t -A -F'|' -c \"SELECT id, company, category, array_to_string\\(keywords,','\\) as keywords, \\\\\"siteUrl\\\\\", \\\\\"siteDescription\\\\\" FROM advertisers ORDER BY category, company;\" 2>&1)",
+      "Bash(PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/17/bin/psql.exe\" \"postgresql://postgres:ljh04021@localhost:5432/intendex_dev?client_encoding=utf8\" -t -A -F'|' -c \"SELECT id, company, category, array_to_string\\(keywords,','\\) as kw FROM advertisers WHERE company IN \\('까사미아','오늘의집','이케아 코리아','한샘','집닥'\\);\" 2>&1)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" \"postgresql://postgres:ljh04021@localhost:5432/intendex_dev\" -t -A -F'|' -c \"SELECT id, company, category, array_to_string\\(keywords,','\\) FROM advertisers WHERE category='법률' ORDER BY company;\" 2>&1)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" \"postgresql://postgres:ljh04021@localhost:5432/intendex_dev\" -c \"\nSELECT company, category, status, \\\\\"remainingBudget\\\\\", keywords\nFROM advertisers \nWHERE company IN \\('펫프렌즈', '비마이펫', '네이버'\\)\nORDER BY company;\n\" 2>&1)"
     ]
   }
 }

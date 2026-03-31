@@ -1,5 +1,6 @@
 # [배포] Railway API 서버용 Dockerfile
 # dockerContext = "." (레포 루트) 기준으로 빌드됨
+ARG CACHEBUST=1
 FROM node:20-alpine
 WORKDIR /app
 
