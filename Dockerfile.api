@@ -26,4 +26,4 @@ EXPOSE 4000
 
 WORKDIR /app/apps/api
 # 실제 빌드 출력: dist/src/main.js (tsconfig rootDir=src 설정에 의해 src 경로 유지)
-CMD sh -c "npx prisma migrate deploy || echo 'migrate failed' && node dist/src/main.js 2>&1 || echo 'node crashed with exit code:' $?"
+CMD sh -c "npx prisma migrate deploy || echo 'migrate warning'; echo 'Starting node...'; node dist/src/main.js; echo 'Node exited with code:' $?"
