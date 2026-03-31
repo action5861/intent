@@ -15,7 +15,7 @@
     "db:push": "prisma db push",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node dist/src/main.js",
+    "start": "echo 'START SCRIPT RUNNING' && node dist/src/main.js 2>&1 || echo 'NODE CRASHED' && exit 1",
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
