@@ -1,4 +1,5 @@
 # [배포 #1] Railway API 서버용 Dockerfile (monorepo 루트 기준)
+ARG CACHEBUST=1
 FROM node:20-alpine
 WORKDIR /app
 
