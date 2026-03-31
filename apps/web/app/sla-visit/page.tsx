@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift } from "lucide-react";
-import Script from "next/script";
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? "";
 const REQUIRED_MS = 20000;
 
 type Phase = "visiting" | "verifying" | "rewarded" | "done" | "error" | "already_done";
@@ -311,16 +308,8 @@ function SlaVisitInner() {
 
 export default function SlaVisitPage() {
   return (
-    <>
-      {process.env.NODE_ENV !== "development" && RECAPTCHA_SITE_KEY && (
-        <Script
-          src={`https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`}
-          strategy="beforeInteractive"
-        />
-      )}
-      <Suspense>
-        <SlaVisitInner />
-      </Suspense>
-    </>
+    <Suspense>
+      <SlaVisitInner />
+    </Suspense>
   );
 }
