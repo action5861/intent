@@ -607,20 +607,21 @@ export default function UserDashboardPage() {
                             key={fb.advertiserId}
                             onClick={() => handleSelectFallback(intent.id, fb.advertiserId)}
                             disabled={fallbackLoadingId === intent.id}
-                            className="w-full rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-2.5 text-left hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors disabled:opacity-50"
+                            className="w-full rounded-xl border border-white/10 bg-slate-800/60 px-3 py-2.5 text-left hover:border-green-500/30 hover:bg-slate-800 transition-colors disabled:opacity-50"
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-semibold text-white">{fb.company}</span>
-                              <span className="rounded-full bg-green-500/10 border border-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">
-                                +{(fb.rewardPerVisit ?? 300).toLocaleString("ko-KR")}P
-                              </span>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Megaphone className="h-3 w-3 text-slate-400" />
+                              <span className="text-xs font-semibold text-white">{fb.company}</span>
                             </div>
-                            {fb.siteUrl && (
-                              <p className="mt-0.5 text-[11px] text-slate-500 truncate">{fb.siteUrl}</p>
-                            )}
-                            {fallbackLoadingId === intent.id && (
-                              <div className="mt-1 flex items-center gap-1 text-[11px] text-purple-400">
-                                <Loader2 className="h-3 w-3 animate-spin" /> 연결 중...
+                            {fallbackLoadingId === intent.id ? (
+                              <div className="flex items-center gap-1.5 rounded-md bg-green-500/10 border border-green-500/20 px-2.5 py-1 w-full justify-center">
+                                <Loader2 className="h-3 w-3 animate-spin text-green-400" />
+                                <span className="text-xs font-bold text-green-400">연결 중...</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 rounded-md bg-green-600 px-2.5 py-1 text-xs font-semibold text-white w-full justify-center">
+                                <ExternalLink className="h-3 w-3" />
+                                사이트 방문하고 {(fb.rewardPerVisit ?? 300).toLocaleString("ko-KR")}P 받기
                               </div>
                             )}
                           </button>
