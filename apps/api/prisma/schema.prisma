@@ -48,6 +48,7 @@ model Advertiser {
   remainingBudget Int              @default(0)
   status          AdvertiserStatus @default(PENDING)
   matchCount      Int              @default(0)
+  isFallback      Boolean          @default(false)
   joinedAt        DateTime         @default(now())
 
   @@map("advertisers")

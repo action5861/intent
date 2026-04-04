@@ -63,6 +63,61 @@ async function main() {
   }
   console.log(`✅ ${advertisers.length} advertisers seeded`);
 
+  // 폴백 광고주 (정규 매칭 실패 시 자동 매칭용)
+  const fallbackAdvertisers = [
+    {
+      company: '쿠팡',
+      contactName: '쿠팡운영',
+      email: 'fallback@coupang.com',
+      category: '쇼핑',
+      keywords: ['쿠팡', '로켓배송', '온라인쇼핑'],
+      siteUrl: 'https://www.coupang.com',
+      siteDescription: '쿠팡 로켓배송 온라인쇼핑몰',
+      rewardPerVisit: 500,
+      totalBudget: 10000000,
+      remainingBudget: 10000000,
+      status: 'ACTIVE' as const,
+      isFallback: true,
+    },
+    {
+      company: '네이버쇼핑',
+      contactName: '네이버쇼핑운영',
+      email: 'fallback@shopping.naver.com',
+      category: '쇼핑',
+      keywords: ['네이버쇼핑', '최저가', '가격비교'],
+      siteUrl: 'https://shopping.naver.com',
+      siteDescription: '네이버 최저가 가격비교 쇼핑',
+      rewardPerVisit: 500,
+      totalBudget: 10000000,
+      remainingBudget: 10000000,
+      status: 'ACTIVE' as const,
+      isFallback: true,
+    },
+    {
+      company: '옥션',
+      contactName: '옥션운영',
+      email: 'fallback@auction.co.kr',
+      category: '쇼핑',
+      keywords: ['옥션', '온라인쇼핑', '할인'],
+      siteUrl: 'https://www.auction.co.kr',
+      siteDescription: '옥션 온라인쇼핑 할인 오픈마켓',
+      rewardPerVisit: 500,
+      totalBudget: 10000000,
+      remainingBudget: 10000000,
+      status: 'ACTIVE' as const,
+      isFallback: true,
+    },
+  ];
+
+  for (const fa of fallbackAdvertisers) {
+    await prisma.advertiser.upsert({
+      where: { email: fa.email },
+      update: { ...fa },
+      create: { ...fa },
+    });
+  }
+  console.log(`✅ ${fallbackAdvertisers.length} fallback advertisers seeded`);
+
   console.log('🎉 Seeding complete!');
 }
 

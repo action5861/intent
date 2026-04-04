@@ -165,9 +165,9 @@ export class IntentsService {
     // [개선 #4] 70점 이상 내림차순 정렬 후 예산 충분한 첫 번째 광고주 선택
     const qualified = scores.filter((s) => s.score >= 70).sort((a, b) => b.score - a.score);
     if (qualified.length === 0) {
-      this.logger.log(`[AI Matching] No match >= 70 for intent [${intentId}]`);
-      // [추천매칭 #2] 1등 없어도 recommendedAdvertisers 빈 배열 저장
+      this.logger.log(`[AI Matching] No match >= 70 for intent [${intentId}] — trying fallback`);
       await this.prisma.intent.update({ where: { id: intentId }, data: { recommendedAdvertisers: [] } });
+      await this.runFallbackMatching(intentId, intentData, intentKeywords);
       return;
     }
 
@@ -186,9 +186,9 @@ export class IntentsService {
     }
 
     if (!topMatch) {
-      this.logger.warn(`[AI Matching] All qualified advertisers have insufficient budget for intent [${intentId}]`);
-      // [추천매칭 #2] 예산 부족으로 1등 없어도 recommendedAdvertisers 빈 배열 저장
+      this.logger.warn(`[AI Matching] All qualified advertisers have insufficient budget for intent [${intentId}] — trying fallback`);
       await this.prisma.intent.update({ where: { id: intentId }, data: { recommendedAdvertisers: [] } });
+      await this.runFallbackMatching(intentId, intentData, intentKeywords);
       return;
     }
 
@@ -240,6 +240,47 @@ export class IntentsService {
     });
 
     this.logger.log(`[AI Matching] Auto-matched and notified advertiser [${topMatch.advertiserId}] — ${recommended.length} recommended`);
+  }
+
+  /**
+   * 폴백 매칭 — 정규 AI 매칭 실패 시 폴백 광고주(쿠팡·네이버쇼핑·옥션) 중 가장 관련 있는 광고주로 자동 매칭
+   */
+  private async runFallbackMatching(intentId: string, intentData: any, intentKeywords: string[]) {
+    const fallbacks = await this.prisma.advertiser.findMany({
+      where: { isFallback: true, status: 'ACTIVE', remainingBudget: { gt: 0 } },
+      select: { id: true, company: true, siteUrl: true, keywords: true, rewardPerVisit: true, remainingBudget: true },
+    });
+
+    if (fallbacks.length === 0) {
+      this.logger.warn(`[Fallback Matching] No available fallback advertisers for intent [${intentId}]`);
+      return;
+    }
+
+    // 의도 키워드와 가장 많이 겹치는 폴백 광고주 선택, 동점이면 순서 유지 (쿠팡 우선)
+    const scored = fallbacks.map((fb) => ({
+      advertiser: fb,
+      overlap: fb.keywords.filter((kw) => intentKeywords.includes(kw)).length,
+    }));
+    scored.sort((a, b) => b.overlap - a.overlap);
+
+    const selected = scored[0].advertiser;
+    this.logger.log(`[Fallback Matching] Matching intent [${intentId}] with fallback [${selected.company}] (keyword overlap: ${scored[0].overlap})`);
+
+    await this.dbService.executeMatchTransaction(intentId, selected.id);
+
+    const channel = `match:ads:${selected.id}`;
+    await this.redisService.publishIntent(channel, { ...intentData, matchScore: 0, matchReason: '폴백 자동 매칭' });
+
+    const userChannel = `user_match:${intentData.userId}`;
+    await this.redisService.publishIntent(userChannel, {
+      intentId,
+      matchedAdvertiserCompany: selected.company,
+      matchedAdvertiserSiteUrl: selected.siteUrl,
+      rewardPerVisit: selected.rewardPerVisit,
+      recommendedAdvertisers: [],
+    });
+
+    this.logger.log(`[Fallback Matching] Fallback matched intent [${intentId}] with [${selected.company}]`);
   }
 
   /**
