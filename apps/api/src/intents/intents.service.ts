@@ -243,12 +243,13 @@ export class IntentsService {
   }
 
   /**
-   * 폴백 매칭 — 정규 AI 매칭 실패 시 폴백 광고주(쿠팡·네이버쇼핑·옥션) 중 가장 관련 있는 광고주로 자동 매칭
+   * 폴백 매칭 — 정규 AI 매칭 실패 시 폴백 광고주 3개를 recommendedAdvertisers에 저장하고
+   * intent 상태를 FALLBACK_READY로 변경. 자동 MATCHED 하지 않음 — 사용자가 직접 선택.
    */
-  private async runFallbackMatching(intentId: string, intentData: any, intentKeywords: string[]) {
+  private async runFallbackMatching(intentId: string, intentData: any, _intentKeywords: string[]) {
     const fallbacks = await this.prisma.advertiser.findMany({
       where: { isFallback: true, status: 'ACTIVE', remainingBudget: { gt: 0 } },
-      select: { id: true, company: true, siteUrl: true, keywords: true, rewardPerVisit: true, remainingBudget: true },
+      select: { id: true, company: true, siteUrl: true, rewardPerVisit: true },
     });
 
     if (fallbacks.length === 0) {
@@ -256,31 +257,68 @@ export class IntentsService {
       return;
     }
 
-    // 의도 키워드와 가장 많이 겹치는 폴백 광고주 선택, 동점이면 순서 유지 (쿠팡 우선)
-    const scored = fallbacks.map((fb) => ({
-      advertiser: fb,
-      overlap: fb.keywords.filter((kw) => intentKeywords.includes(kw)).length,
+    const fallbackPayload = fallbacks.map((fb) => ({
+      advertiserId: fb.id,
+      company: fb.company,
+      siteUrl: fb.siteUrl,
+      rewardPerVisit: fb.rewardPerVisit,
+      score: 0,
+      reason: '폴백 광고주',
     }));
-    scored.sort((a, b) => b.overlap - a.overlap);
 
-    const selected = scored[0].advertiser;
-    this.logger.log(`[Fallback Matching] Matching intent [${intentId}] with fallback [${selected.company}] (keyword overlap: ${scored[0].overlap})`);
+    // FALLBACK_READY 상태로 변경, 폴백 광고주 3개 저장
+    await this.prisma.intent.update({
+      where: { id: intentId },
+      data: { status: 'FALLBACK_READY', recommendedAdvertisers: fallbackPayload },
+    });
 
-    await this.dbService.executeMatchTransaction(intentId, selected.id);
-
-    const channel = `match:ads:${selected.id}`;
-    await this.redisService.publishIntent(channel, { ...intentData, matchScore: 0, matchReason: '폴백 자동 매칭' });
-
+    // 사용자에게 폴백 준비 알림 (isFallback: true → gateway에서 intent_fallback_ready 이벤트 발행)
     const userChannel = `user_match:${intentData.userId}`;
     await this.redisService.publishIntent(userChannel, {
       intentId,
-      matchedAdvertiserCompany: selected.company,
-      matchedAdvertiserSiteUrl: selected.siteUrl,
-      rewardPerVisit: selected.rewardPerVisit,
+      isFallback: true,
+      fallbackAdvertisers: fallbackPayload,
+    });
+
+    this.logger.log(`[Fallback Matching] Intent [${intentId}] set to FALLBACK_READY with ${fallbacks.length} options`);
+  }
+
+  /**
+   * 사용자가 폴백 광고주 중 하나를 선택 — FALLBACK_READY → MATCHED
+   */
+  async selectFallbackAdvertiser(intentId: string, userId: string, advertiserId: string) {
+    const intent = await this.prisma.intent.findUnique({ where: { id: intentId } });
+    if (!intent) throw new NotFoundException(`Intent ${intentId} not found`);
+    if (intent.userId !== userId) throw new BadRequestException('본인의 의도만 선택할 수 있습니다.');
+    if (intent.status !== 'FALLBACK_READY') {
+      throw new BadRequestException(`Intent [${intentId}] is not in FALLBACK_READY status (current: ${intent.status})`);
+    }
+
+    // 폴백 목록에 포함된 광고주인지 확인
+    const recommendedList = (intent.recommendedAdvertisers as any[]) ?? [];
+    const isValid = recommendedList.some((r: any) => r.advertiserId === advertiserId);
+    if (!isValid) throw new BadRequestException('선택한 광고주는 폴백 목록에 없습니다.');
+
+    await this.dbService.executeMatchTransaction(intentId, advertiserId);
+
+    const advertiser = await this.prisma.advertiser.findUnique({
+      where: { id: advertiserId },
+      select: { company: true, siteUrl: true, rewardPerVisit: true },
+    });
+
+    // 매칭 완료 알림 (isFallback: false → gateway에서 intent_matched 이벤트 발행)
+    const userChannel = `user_match:${userId}`;
+    await this.redisService.publishIntent(userChannel, {
+      intentId,
+      isFallback: false,
+      matchedAdvertiserCompany: advertiser?.company ?? null,
+      matchedAdvertiserSiteUrl: advertiser?.siteUrl ?? null,
+      rewardPerVisit: advertiser?.rewardPerVisit ?? null,
       recommendedAdvertisers: [],
     });
 
-    this.logger.log(`[Fallback Matching] Fallback matched intent [${intentId}] with [${selected.company}]`);
+    this.logger.log(`[Fallback Matching] User selected fallback advertiser [${advertiser?.company}] for intent [${intentId}]`);
+    return { success: true, intentId };
   }
 
   /**

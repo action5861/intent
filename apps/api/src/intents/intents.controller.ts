@@ -72,6 +72,22 @@ export class IntentsController {
   }
 
   /**
+   * 폴백 광고주 선택 — 사용자가 FALLBACK_READY 상태 의도에서 원하는 광고주 선택
+   * POST /api/intents/:intentId/select-fallback
+   */
+  @Post(':intentId/select-fallback')
+  @UseGuards(UserGuard)
+  @HttpCode(HttpStatus.OK)
+  async selectFallback(
+    @Req() req: Request,
+    @Param('intentId') intentId: string,
+    @Body() body: { advertiserId: string },
+  ) {
+    const userId = (req as any).user.sub;
+    return this.intentsService.selectFallbackAdvertiser(intentId, userId, body.advertiserId);
+  }
+
+  /**
    * 광고주 의도 수락 — JWT에서 advertiserId 추출
    */
   @Post(':intentId/accept')

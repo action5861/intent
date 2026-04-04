@@ -277,8 +277,10 @@ export class IntentsGateway implements OnGatewayConnection, OnGatewayDisconnect 
       this.subscribedUserChannels.add(channel);
 
       await this.redisService.subscribeToCategory(channel, (message: any) => {
-        this.logger.log(`Match notification delivered to User [${userId}] — intent [${message.intentId}]`);
-        this.server.to(roomName).emit('intent_matched', message);
+        // isFallback: true → 사용자 선택 대기 이벤트, false → 자동 매칭 완료 이벤트
+        const eventName = message.isFallback ? 'intent_fallback_ready' : 'intent_matched';
+        this.logger.log(`Match notification delivered to User [${userId}] — intent [${message.intentId}] (${eventName})`);
+        this.server.to(roomName).emit(eventName, message);
       });
     }
 

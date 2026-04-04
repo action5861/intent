@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Sparkles, Clock, CheckCircle2, Bot, RefreshCw, Megaphone, ExternalLink, Gift, Coins, ArrowDownToLine, X, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { io, Socket } from "socket.io-client";
@@ -62,6 +62,7 @@ interface RecommendedAdvertiser {
   siteUrl: string | null;
   score: number;
   reason: string;
+  rewardPerVisit?: number; // [폴백매칭] 폴백 광고주에만 포함
 }
 
 interface Intent {
@@ -96,6 +97,11 @@ function StatusBadge({ status }: { status: string }) {
       <Gift className="h-3 w-3" /> 리워드 지급
     </span>
   );
+  if (status === "FALLBACK_READY") return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-400 border border-purple-500/20">
+      <Search className="h-3 w-3" /> 쇼핑몰 선택
+    </span>
+  );
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-400 border border-purple-500/20 animate-pulse">
       <Bot className="h-3 w-3" /> AI 분석 중
@@ -124,6 +130,8 @@ export default function UserDashboardPage() {
   // [의도삭제 #1] 삭제 확인 중인 intentId
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // [폴백매칭] 폴백 광고주 선택 로딩 중인 intentId
+  const [fallbackLoadingId, setFallbackLoadingId] = useState<string | null>(null);
 
   const fetchIntents = async () => {
     setLoading(true);
@@ -204,6 +212,47 @@ export default function UserDashboardPage() {
     }
   };
 
+  // [폴백매칭] 사용자가 폴백 광고주 카드 클릭 → MATCHED 처리
+  const handleSelectFallback = async (intentId: string, advertiserId: string) => {
+    const token = localStorage.getItem("user_token");
+    if (!token) return;
+    setFallbackLoadingId(intentId);
+    try {
+      await fetch(`${API_URL}/api/intents/${intentId}/select-fallback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ advertiserId }),
+      });
+      // WebSocket intent_matched 이벤트로 상태 업데이트됨 (별도 fetchIntents 불필요)
+    } catch {
+      // 실패 시 상태 유지
+    } finally {
+      setFallbackLoadingId(null);
+    }
+  };
+
+  // [폴백매칭] FALLBACK_READY 의도별 폴백 광고주 순서 랜덤 셔플 (편향 방지)
+  // FALLBACK_READY intent ID 목록이 바뀔 때만 재셔플
+  const fallbackIntentIds = intents
+    .filter((i) => i.status === "FALLBACK_READY")
+    .map((i) => i.id)
+    .join(",");
+  const shuffledFallbacks = useMemo(() => {
+    const map: Record<string, RecommendedAdvertiser[]> = {};
+    for (const intent of intents) {
+      if (intent.status === "FALLBACK_READY" && Array.isArray(intent.recommendedAdvertisers) && intent.recommendedAdvertisers.length > 0) {
+        const arr = [...intent.recommendedAdvertisers];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        map[intent.id] = arr;
+      }
+    }
+    return map;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fallbackIntentIds]);
+
   useEffect(() => {
     fetchIntents();
 
@@ -232,6 +281,17 @@ export default function UserDashboardPage() {
       setTimeout(() => {
         setNewlyMatchedIds((prev) => { const next = new Set(prev); next.delete(data.intentId); return next; });
       }, 500);
+    });
+
+    // [폴백매칭] 정규 매칭 실패 시 폴백 광고주 선택 UI 활성화
+    socket.on("intent_fallback_ready", (data: { intentId: string; fallbackAdvertisers: RecommendedAdvertiser[] }) => {
+      setIntents((prev) =>
+        prev.map((intent) =>
+          intent.id === data.intentId
+            ? { ...intent, status: "FALLBACK_READY", recommendedAdvertisers: data.fallbackAdvertisers }
+            : intent
+        )
+      );
     });
 
     socket.on("reward_updated", (data: { intentId: string; rewardAmount: number }) => {
@@ -531,6 +591,41 @@ export default function UserDashboardPage() {
                       >
                         <RefreshCw className="h-3 w-3" /> 새로고침
                       </button>
+                    </div>
+                  )}
+
+                  {/* [폴백매칭] 폴백 광고주 선택 UI */}
+                  {intent.status === "FALLBACK_READY" && (
+                    <div className="mt-3">
+                      <p className="mb-2 text-xs font-semibold text-purple-400 flex items-center gap-1.5">
+                        <Search className="h-3 w-3" />
+                        추천 쇼핑몰에서 찾아보세요
+                      </p>
+                      <div className="space-y-2">
+                        {(shuffledFallbacks[intent.id] ?? intent.recommendedAdvertisers ?? []).map((fb) => (
+                          <button
+                            key={fb.advertiserId}
+                            onClick={() => handleSelectFallback(intent.id, fb.advertiserId)}
+                            disabled={fallbackLoadingId === intent.id}
+                            className="w-full rounded-xl border border-purple-500/20 bg-purple-500/5 px-3 py-2.5 text-left hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors disabled:opacity-50"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-semibold text-white">{fb.company}</span>
+                              <span className="rounded-full bg-green-500/10 border border-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">
+                                +{(fb.rewardPerVisit ?? 300).toLocaleString("ko-KR")}P
+                              </span>
+                            </div>
+                            {fb.siteUrl && (
+                              <p className="mt-0.5 text-[11px] text-slate-500 truncate">{fb.siteUrl}</p>
+                            )}
+                            {fallbackLoadingId === intent.id && (
+                              <div className="mt-1 flex items-center gap-1 text-[11px] text-purple-400">
+                                <Loader2 className="h-3 w-3 animate-spin" /> 연결 중...
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
