@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, Sparkles, Clock, CheckCircle2, Bot, RefreshCw, Megaphone, ExternalLink, Gift, Coins, ArrowDownToLine, X, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
@@ -110,6 +111,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function UserDashboardPage() {
+  const router = useRouter();
   const [intents, setIntents] = useState<Intent[]>([]);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("사용자");
@@ -212,18 +214,26 @@ export default function UserDashboardPage() {
     }
   };
 
-  // [폴백매칭] 사용자가 폴백 광고주 카드 클릭 → MATCHED 처리
-  const handleSelectFallback = async (intentId: string, advertiserId: string) => {
+  // [폴백매칭] 사용자가 폴백 광고주 카드 클릭 → select-fallback API 호출 후 즉시 sla-visit 이동
+  const handleSelectFallback = async (
+    intentId: string,
+    advertiserId: string,
+    siteUrl: string,
+    rawText: string,
+    rewardPerVisit: number,
+  ) => {
     const token = localStorage.getItem("user_token");
     if (!token) return;
     setFallbackLoadingId(intentId);
     try {
-      await fetch(`${API_URL}/api/intents/${intentId}/select-fallback`, {
+      const res = await fetch(`${API_URL}/api/intents/${intentId}/select-fallback`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ advertiserId }),
       });
-      // WebSocket intent_matched 이벤트로 상태 업데이트됨 (별도 fetchIntents 불필요)
+      if (!res.ok) return;
+      const searchUrl = buildSearchUrl(siteUrl, rawText);
+      router.push(`/sla-visit?intentId=${intentId}&siteUrl=${encodeURIComponent(searchUrl)}&reward=${rewardPerVisit}`);
     } catch {
       // 실패 시 상태 유지
     } finally {
@@ -605,7 +615,7 @@ export default function UserDashboardPage() {
                         {(shuffledFallbacks[intent.id] ?? intent.recommendedAdvertisers ?? []).map((fb) => (
                           <button
                             key={fb.advertiserId}
-                            onClick={() => handleSelectFallback(intent.id, fb.advertiserId)}
+                            onClick={() => handleSelectFallback(intent.id, fb.advertiserId, fb.siteUrl ?? "", intent.rawText, fb.rewardPerVisit ?? 300)}
                             disabled={fallbackLoadingId === intent.id}
                             className="w-full rounded-xl border border-white/10 bg-slate-800/60 px-3 py-2.5 text-left hover:border-green-500/30 hover:bg-slate-800 transition-colors disabled:opacity-50"
                           >
