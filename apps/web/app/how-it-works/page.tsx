@@ -32,14 +32,14 @@ const GUIDE_SLIDES = [
   {
     step: "STEP 04",
     title: "매칭 완료 — 방문 버튼 확인",
-    description: "대시보드에서 '매칭 완료' 상태의 의도 카드를 확인하세요. AI가 자동으로 가장 적합한 광고주를 찾아줍니다. 초록색 '사이트 방문하고 500P 받기' 버튼이 보이면 클릭하세요.",
+    description: "대시보드에서 '매칭 완료' 상태의 의도 카드를 확인하세요. AI가 자동으로 가장 적합한 파트너를 찾아줍니다. 초록색 '사이트 방문하고 포인트 받기' 버튼이 보이면 클릭하세요.",
     image: "/guide/step4.png",
-    tip: "추천 광고주도 함께 표시됩니다. 하지만 포인트는 초록 버튼의 최우선 매칭 광고주만 지급됩니다.",
+    tip: "추천 파트너도 함께 표시됩니다. 하지만 포인트는 초록 버튼의 최우선 매칭 파트너만 지급됩니다.",
   },
   {
     step: "STEP 05",
-    title: "광고주 사이트 실제 방문",
-    description: "버튼을 클릭하면 매칭된 광고주 사이트가 새 탭에서 열립니다. 사이트를 자유롭게 둘러보세요. Intendex 탭으로 돌아오지 말고 20초 이상 그대로 머물러 있으면 됩니다.",
+    title: "매칭된 서비스 실제 방문",
+    description: "버튼을 클릭하면 매칭된 서비스가 새 탭에서 열립니다. 사이트를 자유롭게 둘러보세요. Intendex 탭으로 돌아오지 말고 20초 이상 그대로 머물러 있으면 됩니다.",
     image: "/guide/step5.png",
     tip: "새 탭을 닫거나 바로 나가지 마세요. 20초가 채워지면 자동으로 포인트가 지급됩니다.",
   },
@@ -160,8 +160,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { label: "프로세스", href: "#process" },
-    { label: "원칙", href: "#principles" },
+    { label: "작동 원리", href: "#process" },
+    { label: "우리의 약속", href: "#principles" },
     { label: "FAQ", href: "#faq" },
   ];
 
@@ -240,7 +240,7 @@ const Hero = () => (
         animate={{ opacity: 1, y: 0 }}
         className="inline-block px-4 py-1.5 rounded-full bg-zinc-800/50 text-blue-400 text-[0.7rem] font-bold tracking-widest mb-8 border border-white/5 uppercase"
       >
-        의도 자산 시대의 시작
+        의도 경제의 시작
       </motion.span>
 
       <motion.h1
@@ -249,9 +249,9 @@ const Hero = () => (
         transition={{ delay: 0.1 }}
         className="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight mb-10 max-w-5xl mx-auto text-white"
       >
-        모든 의도에는
+        당신의 의도,
         <br />
-        <span className="text-blue-500">시장가치가 있습니다.</span>
+        <span className="text-blue-500">당신의 자산입니다.</span>
       </motion.h1>
 
       <motion.p
@@ -260,9 +260,9 @@ const Hero = () => (
         transition={{ delay: 0.2 }}
         className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed"
       >
-        당신의 의도는 이미 거대한 경제 흐름을 만들고 있습니다.
+        AI 시대, 기업은 당신이 무엇을 원하는지 알기 위해 막대한 비용을 씁니다.
         <br />
-        Intendex는 그 가치를 당신에게 돌려줍니다.
+        Intendex는 그 가치를 당신에게 직접 돌려드립니다.
       </motion.p>
 
       <motion.p
@@ -271,9 +271,9 @@ const Hero = () => (
         transition={{ delay: 0.25 }}
         className="text-zinc-600 text-sm max-w-lg mx-auto mb-12 leading-relaxed"
       >
-        의도를 등록하는 것은
+        당신의 의도를 등록하세요.
         <br />
-        당신의 경제적 의사결정을 자산으로 전환하는 행위입니다.
+        그것이 가치가 되는 경험을 해보세요.
       </motion.p>
 
       <motion.div
@@ -286,7 +286,7 @@ const Hero = () => (
           href="/register"
           className="w-full sm:w-auto px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full transition-all hover:scale-105 shadow-2xl shadow-blue-600/20 text-center"
         >
-          의도 자산 등록하기
+          의도 등록하기
         </Link>
         <Link
           href="/login"
@@ -305,7 +305,7 @@ const Hero = () => (
         <svg className="w-3.5 h-3.5 text-zinc-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75A4.5 4.5 0 0 0 7.5 6.75v3.75m-.75 0h10.5A1.5 1.5 0 0 1 18.75 12v6A1.5 1.5 0 0 1 17.25 19.5H6.75A1.5 1.5 0 0 1 5.25 18v-6A1.5 1.5 0 0 1 6.75 10.5Z" />
         </svg>
-        이름·연락처 등 개인 식별 정보는 수집하지 않습니다
+        개인 식별 정보는 수집하지 않습니다
       </motion.p>
     </div>
   </section>
@@ -321,11 +321,13 @@ const Intro = () => (
       className="max-w-3xl mx-auto rounded-3xl border border-blue-500/20 bg-blue-500/5 px-10 py-10 text-center"
     >
       <p className="text-base leading-relaxed text-zinc-300 md:text-lg">
-        기업들은 수조 원을 들여 소비자의 진짜 의도를 파악하려 합니다.
+        매일 수억 건의 검색과 클릭이 발생합니다.
         <br className="hidden sm:block" />
-        그 데이터의 원천은 언제나 <span className="font-semibold text-white">당신</span>이었습니다.
+        그 안에는 사람들의 진짜 필요와 선택이 담겨 있습니다.
         <br className="hidden sm:block mt-3" />
-        <span className="text-blue-400">Intendex는 그 가치를 처음으로 소비자에게 되돌립니다.</span>
+        하지만 그 데이터의 주인은 정작 아무런 보상도 받지 못했습니다.
+        <br className="hidden sm:block" />
+        <span className="text-blue-400">Intendex는 이 구조를 바꿉니다.</span>
       </p>
     </motion.div>
   </section>
@@ -337,7 +339,7 @@ const Stats = () => (
     <div className="max-w-7xl mx-auto px-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
         {[
-          { label: "파트너 브랜드", value: "500", suffix: "+" },
+          { label: "제휴 파트너", value: "500", suffix: "+" },
           { label: "자산 카테고리", value: "15", suffix: "개" },
           { label: "의도 1건당 수익", value: "최대 1,000", suffix: "P" },
           { label: "수익 실현 기준", value: "10,000", suffix: "P~" },
@@ -365,7 +367,7 @@ const Process = () => (
   <section id="process" className="py-32 bg-[#111417]">
     <div className="max-w-7xl mx-auto px-6">
       <div className="mb-24 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">의도 자산화 프로세스</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">어떻게 작동하나요</h2>
         <div className="w-20 h-1 bg-blue-600 mx-auto" />
       </div>
 
@@ -373,18 +375,18 @@ const Process = () => (
         {[
           {
             num: "01",
-            title: "의도를 정의하세요",
-            desc: "무엇을 원하는지 생각을 그대로 표현하세요. 자신의 의도를 명확히 정의하는 것이 자산을 만드는 첫걸음입니다.",
+            title: "의도를 말해주세요",
+            desc: "사고 싶은 것, 알아보고 싶은 것을 자연스럽게 이야기하세요. AI가 대화를 통해 당신의 필요를 정확히 이해합니다.",
           },
           {
             num: "02",
-            title: "AI가 가치를 산정합니다",
-            desc: "AI가 당신의 의도와 가장 부합하는 파트너 브랜드를 분석합니다. 당신의 의도는 경쟁 입찰의 대상이 됩니다.",
+            title: "AI가 최적의 파트너를 찾습니다",
+            desc: "등록된 의도를 분석하여 가장 적합한 서비스와 연결합니다. 당신의 시간을 아껴주는 매칭입니다.",
           },
           {
             num: "03",
-            title: "수익이 누적됩니다",
-            desc: "이것은 클릭 수익이 아닙니다. 당신의 경제적 의사결정에 대한 정당한 보상입니다. 의도를 등록할 때마다 쌓입니다.",
+            title: "방문만으로 보상을 받습니다",
+            desc: "연결된 서비스를 둘러보는 것만으로 포인트가 적립됩니다. 구매 의무는 없습니다. 당신의 관심 자체가 가치입니다.",
           },
         ].map((step, i) => (
           <motion.div
@@ -412,31 +414,31 @@ const Principles = () => (
   <section id="principles" className="py-32 bg-[#0c0e12]">
     <div className="max-w-7xl mx-auto px-6">
       <div className="max-w-xl mb-20">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Intendex의 원칙</h2>
-        <p className="text-zinc-400 text-lg">소비자 중심의 데이터 경제를 만드는 4가지 기준</p>
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">우리의 약속</h2>
+        <p className="text-zinc-400 text-lg">사용자의 신뢰 위에 세워진 4가지 원칙</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 rounded-[2.5rem] overflow-hidden border border-white/5">
         {[
           {
             icon: <Shield className="text-blue-500" />,
-            title: "완전한 데이터 주권",
-            desc: "의도 내용은 당신의 동의 하에만 활용됩니다. 이름, 연락처 등 개인 식별 정보는 어떤 기업에도 전달되지 않습니다. 당신은 언제나 데이터의 주인입니다.",
+            title: "데이터 주권은 당신에게",
+            desc: "이름, 연락처 같은 개인 정보는 수집하지 않습니다. 의도 데이터는 당신의 동의 하에만 활용됩니다.",
           },
           {
             icon: <Scale className="text-blue-500" />,
-            title: "수익의 직접 귀속",
-            desc: "당신의 의도가 만든 경제적 가치는 중간 플랫폼이 아닌 당신 계좌로 직접 귀속됩니다. 10,000P부터 즉시 인출 가능합니다.",
+            title: "보상은 직접 당신에게",
+            desc: "중간 과정 없이 당신의 계정으로 포인트가 적립됩니다. 10,000P부터 현금 인출이 가능합니다.",
           },
           {
             icon: <Zap className="text-blue-500" />,
-            title: "의도의 즉시 가치화",
-            desc: "등록 즉시 AI가 의도의 시장 가치를 평가합니다. 당신의 결정은 선반 위에 쌓이지 않고 실시간으로 자산이 됩니다.",
+            title: "등록 즉시 가치가 됩니다",
+            desc: "의도를 등록하는 순간 AI가 분석을 시작합니다. 기다림 없이 빠르게 최적의 서비스와 연결됩니다.",
           },
           {
             icon: <Globe className="text-blue-500" />,
-            title: "의도의 정밀한 표현",
-            desc: "검색 키워드가 아닌 맥락 있는 언어로 의도를 표현하세요. AI가 당신의 결정을 정확히 파악하고 적절한 가치를 산정합니다.",
+            title: "키워드가 아닌 맥락으로",
+            desc: "단순 검색어가 아닌 대화를 통해 의도를 표현하세요. AI가 맥락을 이해하고 정확한 매칭을 만들어냅니다.",
           },
         ].map((p, i) => (
           <div key={i} className="bg-[#111417] p-12 hover:bg-zinc-900 transition-colors">
@@ -458,24 +460,20 @@ const FAQ = () => {
 
   const faqs = [
     {
-      q: "참여 비용이 있나요?",
-      a: "없습니다. Intendex는 완전 무료 플랫폼입니다. 의도를 등록하고 수익을 받으세요. 가입비, 이용료, 수수료 어떤 비용도 없습니다.",
+      q: "사이트에서 꼭 구매해야 하나요?",
+      a: "아닙니다. 사이트를 둘러보는 것만으로 충분합니다. 이후의 선택은 전적으로 당신의 자유입니다.",
     },
     {
-      q: "파트너 브랜드 사이트에서 꼭 무언가를 해야 하나요?",
-      a: "아닙니다. 사이트 방문 자체가 의도 확인 행위이며, 그것만으로 수익이 발생합니다. 이후의 행동은 전적으로 본인의 선택입니다.",
-    },
-    {
-      q: "수익은 어떻게 인출하나요?",
-      a: "10,000P 이상의 수익이 누적되면 마이페이지에서 계좌 인출을 신청할 수 있습니다. 복잡한 절차 없이 몇 초 안에 완료됩니다.",
+      q: "포인트는 어떻게 사용하나요?",
+      a: "10,000P 이상이 쌓이면 현금으로 인출할 수 있습니다. 리워드 메뉴에서 간단히 신청하세요.",
     },
     {
       q: "하루에 몇 건의 의도를 등록할 수 있나요?",
-      a: "하루 2건까지 의도를 등록하고 수익화할 수 있습니다. 각 의도는 독립적인 자산으로 관리됩니다.",
+      a: "하루 2건까지 등록할 수 있습니다. 하나의 의도가 하나의 자산이 됩니다.",
     },
     {
       q: "내 정보는 어떻게 보호되나요?",
-      a: "Intendex는 개인 식별 정보를 수집하지 않습니다. 이것은 정책이 아니라 구조적 설계입니다. 의도 내용만 파트너 브랜드와 공유되며, 이름·연락처 등 당신이 누구인지를 특정할 수 있는 정보는 어떤 경우에도 저장되거나 전달되지 않습니다.",
+      a: "개인 식별 정보를 수집하지 않는 것이 Intendex의 설계 원칙입니다. 의도 내용만 매칭에 활용되며, 당신이 누구인지는 어디에도 저장되지 않습니다.",
     },
   ];
 
@@ -566,21 +564,21 @@ export default function HowItWorksPage() {
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-blue-700/50 to-transparent pointer-events-none" />
           <p className="text-sm font-bold text-blue-200 uppercase tracking-widest mb-6 relative z-10">
-            지금 이 순간에도 당신의 의도는 가치를 지닙니다
+            당신의 선택이 가치가 되는 곳
           </p>
           <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-10 leading-tight relative z-10">
-            당신의 의도는 이미 자산입니다
+            지금, 첫 의도를 등록해보세요.
           </h2>
           <p className="text-blue-100 text-xl max-w-2xl mx-auto mb-14 relative z-10 leading-relaxed">
-            첫 의도를 등록하세요.
-            당신의 경제적 결정이 실질적인 수익원이 됩니다.
+            복잡한 절차 없이 대화 한 번이면 충분합니다.<br />
+            당신의 의도가 보상으로 돌아오는 경험을 시작하세요.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
             <Link
               href="/register"
               className="bg-white text-blue-600 hover:bg-zinc-100 px-12 py-6 rounded-full text-xl font-bold transition-all transform hover:scale-105"
             >
-              지금 시작하기 →
+              시작하기 →
             </Link>
             <Link
               href="/login"
