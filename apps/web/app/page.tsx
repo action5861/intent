@@ -9,20 +9,21 @@ export default function Home() {
         <div className="absolute bottom-[-20%] right-[-10%] h-[40rem] w-[40rem] rounded-full bg-indigo-900/20 blur-[100px]" />
       </div>
 
-      <main className="relative z-10 flex w-full max-w-5xl flex-col items-center justify-center px-6 text-center sm:px-12">
-        {/* Badge / Chip */}
-        <div className="mb-8 inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-1.5 text-sm font-medium text-blue-300 backdrop-blur-sm transition-colors hover:bg-blue-500/20">
-          <span className="relative flex h-2 w-2 mr-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
-          </span>
-          대한민국 최초 의도등록거래소
-        </div>
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
 
+      <main className="relative z-10 flex w-full max-w-5xl flex-col items-center justify-center px-6 text-center sm:px-12 pt-16">
         {/* Hero Title */}
-        <div className="mb-6 flex flex-col items-center gap-3">
-          <span className="text-lg sm:text-xl font-semibold text-blue-400 tracking-wider uppercase">Intent Exchange Platform</span>
-          <h1 className="max-w-4xl text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-100 to-slate-400 sm:text-7xl break-keep">
+        <div className="mb-8 flex flex-col items-center">
+          <span className="mb-6 pb-1 text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 animate-[gradient_8s_ease_infinite] [background-size:200%_200%] whitespace-nowrap">
+            Intent Exchange Platform
+          </span>
+          <h1 className="max-w-4xl text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-100 to-slate-400 sm:text-7xl break-keep mt-2">
             당신의 의도에 가격이 붙습니다
           </h1>
         </div>
@@ -30,7 +31,7 @@ export default function Home() {
         {/* Subtext */}
         <p className="mb-10 max-w-2xl text-lg leading-relaxed text-slate-400 sm:text-xl break-keep">
           사고 싶은 것, 알아보고 싶은 것을 등록하세요.<br className="hidden sm:block" />
-          AI가 최적의 광고주를 매칭하고, 당신의 데이터에 정당한 보상을 지급합니다.
+          AI가 최적의 정보를 매칭하고, 당신의 데이터에 정당한 보상을 지급합니다.
         </p>
 
         {/* Call to Action Button */}

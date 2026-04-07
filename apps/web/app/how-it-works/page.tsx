@@ -333,34 +333,7 @@ const Intro = () => (
   </section>
 );
 
-/* ── 수치 ────────────────────────────────────────────── */
-const Stats = () => (
-  <section className="py-20 bg-[#0c0e12]">
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-        {[
-          { label: "제휴 파트너", value: "500", suffix: "+" },
-          { label: "자산 카테고리", value: "15", suffix: "개" },
-          { label: "의도 1건당 수익", value: "최대 1,000", suffix: "P" },
-          { label: "수익 실현 기준", value: "10,000", suffix: "P~" },
-        ].map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <div className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tighter">
-              {stat.value}<span className="text-blue-500">{stat.suffix}</span>
-            </div>
-            <div className="text-zinc-500 text-xs tracking-widest uppercase font-bold">{stat.label}</div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
+
 
 /* ── 프로세스 ─────────────────────────────────────────── */
 const Process = () => (
@@ -530,7 +503,6 @@ export default function HowItWorksPage() {
       <Navbar />
       <Hero />
       <Intro />
-      <Stats />
       <Process />
 
       {/* 화면으로 따라하는 이용 가이드 */}
