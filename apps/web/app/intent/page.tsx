@@ -17,7 +17,7 @@ type ChatState = "chatting" | "ready" | "submitting" | "done";
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
-  content: "안녕하세요! 무엇을 찾고 계신가요? 편하게 말씀해 주세요. 제가 당신의 의도를 자산화해 드리겠습니다.",
+  content: "안녕하세요! 무엇을 찾고 계신가요? 편하게 말씀해 주세요. 제가 당신의 검색의도를 자산화해 드리겠습니다.",
 };
 
 export default function IntentPage() {
@@ -174,9 +174,9 @@ export default function IntentPage() {
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6">
         <div className="mb-4 text-center">
           <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            의도 등록하기
+            검색의도 등록하기
           </h1>
-          <p className="mt-1 text-sm text-slate-500">AI와 대화하며 당신의 의도를 구체화하세요</p>
+          <p className="mt-1 text-sm text-slate-500">AI와 대화하며 당신의 검색의도를 구체화하세요</p>
         </div>
 
         {/* Messages */}
@@ -249,7 +249,7 @@ export default function IntentPage() {
             <div className="flex flex-col items-center gap-2 pt-2">
               <div className="flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-6 py-3 text-green-400">
                 <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">의도가 성공적으로 등록되었습니다!</span>
+                <span className="font-medium">검색의도가 성공적으로 등록되었습니다!</span>
               </div>
               <p className="text-sm text-slate-500">대시보드로 이동 중...</p>
             </div>
@@ -292,7 +292,7 @@ export default function IntentPage() {
 
         <div className="mt-4 text-center">
           <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
-            내 의도 내역 확인하기
+            내 검색의도 내역 확인하기
           </Link>
         </div>
       </main>

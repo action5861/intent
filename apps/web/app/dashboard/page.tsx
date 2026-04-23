@@ -129,7 +129,7 @@ export default function UserDashboardPage() {
   const [matchingTextIdx, setMatchingTextIdx] = useState(0); // [UX개선 #1]
   const [newlyMatchedIds, setNewlyMatchedIds] = useState<Set<string>>(new Set()); // [UX개선 #2]
   const [timedOutIds, setTimedOutIds] = useState<Set<string>>(new Set()); // [UX개선 #3]
-  // [의도삭제 #1] 삭제 확인 중인 intentId
+  // [검색의도삭제 #1] 삭제 확인 중인 intentId
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   // [폴백매칭] 폴백 광고주 선택 로딩 중인 intentId
@@ -195,7 +195,7 @@ export default function UserDashboardPage() {
     }
   };
 
-  // [의도삭제 #1] 의도 소프트 딜리트
+  // [검색의도삭제 #1] 검색의도 소프트 딜리트
   const handleDeleteIntent = async (intentId: string) => {
     const token = localStorage.getItem("user_token");
     if (!token) return;
@@ -241,7 +241,7 @@ export default function UserDashboardPage() {
     }
   };
 
-  // [폴백매칭] FALLBACK_READY 의도별 폴백 광고주 순서 랜덤 셔플 (편향 방지)
+  // [폴백매칭] FALLBACK_READY 검색의도별 폴백 광고주 순서 랜덤 셔플 (편향 방지)
   // FALLBACK_READY intent ID 목록이 바뀔 때만 재셔플
   const fallbackIntentIds = intents
     .filter((i) => i.status === "FALLBACK_READY")
@@ -330,7 +330,7 @@ export default function UserDashboardPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // [UX개선 #3] WAITING_MATCH 의도마다 30초 타임아웃 타이머 설정
+  // [UX개선 #3] WAITING_MATCH 검색의도마다 30초 타임아웃 타이머 설정
   useEffect(() => {
     const waitingIntents = intents.filter((i) => i.status === "WAITING_MATCH");
     waitingIntents.forEach((intent) => {
@@ -342,7 +342,7 @@ export default function UserDashboardPage() {
         timeoutRefsRef.current.set(intent.id, timer);
       }
     });
-    // 더 이상 WAITING_MATCH가 아닌 의도의 타이머 정리
+    // 더 이상 WAITING_MATCH가 아닌 검색의도의 타이머 정리
     timeoutRefsRef.current.forEach((timer, id) => {
       if (!waitingIntents.find((i) => i.id === id)) {
         clearTimeout(timer);
@@ -487,7 +487,7 @@ export default function UserDashboardPage() {
             </div>
           )}
           <Link href="/intent" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
-            새 의도 등록하기
+            새 검색의도 등록하기
           </Link>
           <button onClick={fetchIntents} className="text-slate-400 hover:text-white transition-colors">
             <RefreshCw className="h-4 w-4" />
@@ -502,7 +502,7 @@ export default function UserDashboardPage() {
         <section className="flex flex-col gap-6 mt-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white">나의 의도 등록 내역</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-white">나의 검색의도 등록 내역</h1>
               <p className="mt-1 text-sm text-slate-500">{userName}님의 등록 데이터가 실시간으로 저장됩니다.</p>
             </div>
             <span className="text-sm font-medium text-slate-400">총 {intents.length}건</span>
@@ -532,7 +532,7 @@ export default function UserDashboardPage() {
                     <StatusBadge status={intent.status} />
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500">{formatDate(intent.createdAt)}</span>
-                      {/* [의도삭제 #1] 삭제 버튼 */}
+                      {/* [검색의도삭제 #1] 삭제 버튼 */}
                       {confirmDeleteId === intent.id ? (
                         <div className="flex items-center gap-1">
                           <button
@@ -699,9 +699,9 @@ export default function UserDashboardPage() {
               {intents.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 py-16 text-slate-500">
                   <Search className="mb-4 h-10 w-10 text-slate-600" />
-                  <p>아직 등록한 의도가 없습니다.</p>
+                  <p>아직 등록한 검색의도가 없습니다.</p>
                   <Link href="/intent" className="mt-4 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">
-                    첫 번째 의도를 등록하러 가기 →
+                    첫 번째 검색의도를 등록하러 가기 →
                   </Link>
                 </div>
               )}

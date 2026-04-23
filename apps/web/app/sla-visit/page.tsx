@@ -259,7 +259,7 @@ function SlaVisitInner() {
         {phase === "already_done" && (
           <div className="rounded-2xl border border-white/10 bg-slate-900 p-8 text-center">
             <CheckCircle2 className="mx-auto mb-4 h-10 w-10 text-purple-400" />
-            <p className="text-white font-medium">이미 정산 완료된 의도입니다.</p>
+            <p className="text-white font-medium">이미 정산 완료된 검색의도입니다.</p>
             <button
               onClick={() => router.push("/dashboard")}
               className="mt-6 w-full rounded-xl bg-slate-800 py-2.5 text-sm font-medium text-slate-300 hover:text-white transition-colors"

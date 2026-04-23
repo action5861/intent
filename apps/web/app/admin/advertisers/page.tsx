@@ -987,13 +987,13 @@ export default function AdminAdvertisersPage() {
 
                     {/* [어드민매칭 #3] 매칭 테이블 */}
                     {detailMatches.length === 0 ? (
-                      <div className="flex-1 py-12 text-center text-sm text-slate-500">매칭된 의도가 없습니다.</div>
+                      <div className="flex-1 py-12 text-center text-sm text-slate-500">매칭된 검색의도가 없습니다.</div>
                     ) : (
                       <div className="overflow-y-auto flex-1" style={{ maxHeight: "520px" }}>
                         <table className="w-full text-xs">
                           <thead className="sticky top-0 border-b border-white/10 bg-slate-900">
                             <tr>
-                              {["사용자", "의도 내용", "카테고리", "예상 단가", "상태", "체류시간", "지급P", "매칭 체결 시간"].map((h) => (
+                              {["사용자", "검색의도 내용", "카테고리", "예상 단가", "상태", "체류시간", "지급P", "매칭 체결 시간"].map((h) => (
                                 <th key={h} className="whitespace-nowrap px-3 py-2 text-left font-semibold uppercase tracking-wider text-slate-500">
                                   {h}
                                 </th>
@@ -1007,7 +1007,7 @@ export default function AdminAdvertisersPage() {
                                   <td className="whitespace-nowrap px-3 py-2.5 font-mono text-slate-400">
                                     {m.user.displayId}
                                   </td>
-                                  {/* [어드민매칭 #3] 의도 내용 클릭 시 전체 텍스트 펼침 */}
+                                  {/* [어드민매칭 #3] 검색의도 내용 클릭 시 전체 텍스트 펼침 */}
                                   <td className="max-w-[180px] px-3 py-2.5">
                                     <div
                                       className="flex cursor-pointer items-start gap-1"

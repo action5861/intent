@@ -8,8 +8,8 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "Intendex - 의도등록거래소",
-  description: "당신의 구매 의도에 가격이 붙습니다",
+  title: "Intendex - 검색의도 등록 거래소",
+  description: "당신의 검색의도에 가격이 붙습니다",
 };
 
 export default function RootLayout({

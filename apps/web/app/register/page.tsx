@@ -58,7 +58,7 @@ export default function RegisterPage() {
           </svg>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">새 계정 만들기</h2>
-        <p className="mt-2 text-center text-sm text-slate-400">당신의 의도를 등록하고 가치를 창출하세요</p>
+        <p className="mt-2 text-center text-sm text-slate-400">당신의 검색의도를 등록하고 가치를 창출하세요</p>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -134,7 +134,7 @@ export default function RegisterPage() {
           {success && (
             <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              가입 완료! 의도 등록 페이지로 이동합니다...
+              가입 완료! 검색의도 등록 페이지로 이동합니다...
             </div>
           )}
 

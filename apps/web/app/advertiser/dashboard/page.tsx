@@ -217,7 +217,7 @@ export default function AdvertiserDashboardPage() {
         <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-yellow-400" />
-            <h2 className="text-lg font-bold text-white">매칭된 사용자 의도</h2>
+            <h2 className="text-lg font-bold text-white">매칭된 사용자 검색의도</h2>
           </div>
           <span className="text-sm text-slate-500">AI가 자동으로 선별한 결과입니다</span>
         </div>
@@ -231,8 +231,8 @@ export default function AdvertiserDashboardPage() {
         ) : matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 py-20 text-slate-500">
             <ShoppingBag className="mb-3 h-10 w-10 text-slate-600" />
-            <p className="text-sm">아직 매칭된 사용자 의도가 없습니다.</p>
-            <p className="mt-1 text-xs text-slate-600">AI가 적합한 사용자 의도를 자동으로 매칭해드립니다.</p>
+            <p className="text-sm">아직 매칭된 사용자 검색의도가 없습니다.</p>
+            <p className="mt-1 text-xs text-slate-600">AI가 적합한 사용자 검색의도를 자동으로 매칭해드립니다.</p>
           </div>
         ) : (
           <div className="space-y-3">

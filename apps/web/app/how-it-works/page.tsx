@@ -24,15 +24,15 @@ const GUIDE_SLIDES = [
   },
   {
     step: "STEP 03",
-    title: "AI와 대화하며 의도 등록",
-    description: "AI가 먼저 인사하며 무엇이 필요한지 물어봅니다. 자연스럽게 대화하듯 답하세요. 충분한 정보가 모이면 '지금 바로 등록하기' 버튼이 나타납니다. 버튼을 눌러 의도를 등록하세요.",
+    title: "AI와 대화하며 검색의도 등록",
+    description: "AI가 먼저 인사하며 무엇이 필요한지 물어봅니다. 자연스럽게 대화하듯 답하세요. 충분한 정보가 모이면 '지금 바로 등록하기' 버튼이 나타납니다. 버튼을 눌러 검색의도를 등록하세요.",
     image: "/guide/step3.png",
     tip: "예시: '토익 공부를 하고 싶어' → AI가 방식/지역을 물음 → '온라인 강의를 하고 싶어' → 등록 완료",
   },
   {
     step: "STEP 04",
     title: "매칭 완료 — 방문 버튼 확인",
-    description: "대시보드에서 '매칭 완료' 상태의 의도 카드를 확인하세요. AI가 자동으로 가장 적합한 파트너를 찾아줍니다. 초록색 '사이트 방문하고 포인트 받기' 버튼이 보이면 클릭하세요.",
+    description: "대시보드에서 '매칭 완료' 상태의 검색의도 카드를 확인하세요. AI가 자동으로 가장 적합한 파트너를 찾아줍니다. 초록색 '사이트 방문하고 포인트 받기' 버튼이 보이면 클릭하세요.",
     image: "/guide/step4.png",
     tip: "추천 파트너도 함께 표시됩니다. 하지만 포인트는 초록 버튼의 최우선 매칭 파트너만 지급됩니다.",
   },
@@ -53,7 +53,7 @@ const GUIDE_SLIDES = [
   {
     step: "STEP 07",
     title: "대시보드에서 포인트 지급 확인",
-    description: "대시보드로 돌아오면 의도 카드의 상태가 '리워드 지급'으로 바뀌고 '+500P 지급 완료' 배지가 표시됩니다. 포인트가 10,000P 이상 쌓이면 현금 인출 신청이 가능합니다.",
+    description: "대시보드로 돌아오면 검색의도 카드의 상태가 '리워드 지급'으로 바뀌고 '+500P 지급 완료' 배지가 표시됩니다. 포인트가 10,000P 이상 쌓이면 현금 인출 신청이 가능합니다.",
     image: "/guide/step8.png",
     tip: "리워드 메뉴에서 전체 적립 내역을 확인하고, 출금 신청도 할 수 있습니다.",
   },
@@ -131,13 +131,12 @@ function GuideSlider() {
             key={i}
             onClick={() => setCurrent(i)}
             aria-label={`슬라이드 ${i + 1}로 이동`}
-            className={`rounded-full transition-all duration-300 ${
-              i === current
-                ? "h-2.5 w-8 bg-blue-500"
-                : i < current
+            className={`rounded-full transition-all duration-300 ${i === current
+              ? "h-2.5 w-8 bg-blue-500"
+              : i < current
                 ? "h-2.5 w-2.5 bg-blue-800 hover:bg-blue-600"
                 : "h-2.5 w-2.5 bg-zinc-600 hover:bg-zinc-400"
-            }`}
+              }`}
           />
         ))}
       </div>
@@ -240,7 +239,7 @@ const Hero = () => (
         animate={{ opacity: 1, y: 0 }}
         className="inline-block px-4 py-1.5 rounded-full bg-zinc-800/50 text-blue-400 text-[0.7rem] font-bold tracking-widest mb-8 border border-white/5 uppercase"
       >
-        의도 경제의 시작
+        검색의도 경제의 시작
       </motion.span>
 
       <motion.h1
@@ -249,7 +248,7 @@ const Hero = () => (
         transition={{ delay: 0.1 }}
         className="text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight mb-10 max-w-5xl mx-auto text-white"
       >
-        당신의 의도,
+        당신의 검색의도,
         <br />
         <span className="text-blue-500">당신의 자산입니다.</span>
       </motion.h1>
@@ -271,9 +270,9 @@ const Hero = () => (
         transition={{ delay: 0.25 }}
         className="text-zinc-600 text-sm max-w-lg mx-auto mb-12 leading-relaxed"
       >
-        당신의 의도를 등록하세요.
+
         <br />
-        그것이 가치가 되는 경험을 해보세요.
+
       </motion.p>
 
       <motion.div
@@ -286,7 +285,7 @@ const Hero = () => (
           href="/register"
           className="w-full sm:w-auto px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full transition-all hover:scale-105 shadow-2xl shadow-blue-600/20 text-center"
         >
-          의도 등록하기
+          검색의도 등록하기
         </Link>
         <Link
           href="/login"
@@ -321,7 +320,7 @@ const Intro = () => (
       className="max-w-3xl mx-auto rounded-3xl border border-blue-500/20 bg-blue-500/5 px-10 py-10 text-center"
     >
       <p className="text-base leading-relaxed text-zinc-300 md:text-lg">
-        매일 수억 건의 검색과 클릭이 발생합니다.
+        매일 수십억 건의 검색과 클릭이 발생합니다.
         <br className="hidden sm:block" />
         그 안에는 사람들의 진짜 필요와 선택이 담겨 있습니다.
         <br className="hidden sm:block mt-3" />
@@ -340,7 +339,7 @@ const Process = () => (
   <section id="process" className="py-32 bg-[#111417]">
     <div className="max-w-7xl mx-auto px-6">
       <div className="mb-24 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">어떻게 작동하나요</h2>
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">어떻게 작동하나요?</h2>
         <div className="w-20 h-1 bg-blue-600 mx-auto" />
       </div>
 
@@ -348,13 +347,13 @@ const Process = () => (
         {[
           {
             num: "01",
-            title: "의도를 말해주세요",
+            title: "검색의도를 말해주세요",
             desc: "사고 싶은 것, 알아보고 싶은 것을 자연스럽게 이야기하세요. AI가 대화를 통해 당신의 필요를 정확히 이해합니다.",
           },
           {
             num: "02",
             title: "AI가 최적의 파트너를 찾습니다",
-            desc: "등록된 의도를 분석하여 가장 적합한 서비스와 연결합니다. 당신의 시간을 아껴주는 매칭입니다.",
+            desc: "등록된 검색의도를 분석하여 가장 적합한 서비스와 연결합니다. 당신의 시간을 아껴주는 매칭입니다.",
           },
           {
             num: "03",
@@ -396,7 +395,7 @@ const Principles = () => (
           {
             icon: <Shield className="text-blue-500" />,
             title: "데이터 주권은 당신에게",
-            desc: "이름, 연락처 같은 개인 정보는 수집하지 않습니다. 의도 데이터는 당신의 동의 하에만 활용됩니다.",
+            desc: "이름, 연락처 같은 개인 정보는 수집하지 않습니다. 검색의도 데이터는 당신의 동의 하에만 활용됩니다.",
           },
           {
             icon: <Scale className="text-blue-500" />,
@@ -406,12 +405,12 @@ const Principles = () => (
           {
             icon: <Zap className="text-blue-500" />,
             title: "등록 즉시 가치가 됩니다",
-            desc: "의도를 등록하는 순간 AI가 분석을 시작합니다. 기다림 없이 빠르게 최적의 서비스와 연결됩니다.",
+            desc: "검색의도를 등록하는 순간 AI가 분석을 시작합니다. 기다림 없이 빠르게 최적의 서비스와 연결됩니다.",
           },
           {
             icon: <Globe className="text-blue-500" />,
             title: "키워드가 아닌 맥락으로",
-            desc: "단순 검색어가 아닌 대화를 통해 의도를 표현하세요. AI가 맥락을 이해하고 정확한 매칭을 만들어냅니다.",
+            desc: "단순 검색어가 아닌 대화를 통해 검색의도를 표현하세요. AI가 맥락을 이해하고 정확한 매칭을 만들어냅니다.",
           },
         ].map((p, i) => (
           <div key={i} className="bg-[#111417] p-12 hover:bg-zinc-900 transition-colors">
@@ -441,12 +440,12 @@ const FAQ = () => {
       a: "10,000P 이상이 쌓이면 현금으로 인출할 수 있습니다. 리워드 메뉴에서 간단히 신청하세요.",
     },
     {
-      q: "하루에 몇 건의 의도를 등록할 수 있나요?",
-      a: "하루 2건까지 등록할 수 있습니다. 하나의 의도가 하나의 자산이 됩니다.",
+      q: "하루에 몇 건의 검색의도를 등록할 수 있나요?",
+      a: "하루 2건까지 등록할 수 있습니다. 하나의 검색의도가 하나의 자산이 됩니다.",
     },
     {
       q: "내 정보는 어떻게 보호되나요?",
-      a: "개인 식별 정보를 수집하지 않는 것이 Intendex의 설계 원칙입니다. 의도 내용만 매칭에 활용되며, 당신이 누구인지는 어디에도 저장되지 않습니다.",
+      a: "개인 식별 정보를 수집하지 않는 것이 Intendex의 설계 원칙입니다. 검색의도 내용만 매칭에 활용되며, 당신이 누구인지는 어디에도 저장되지 않습니다.",
     },
   ];
 
@@ -539,11 +538,11 @@ export default function HowItWorksPage() {
             당신의 선택이 가치가 되는 곳
           </p>
           <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-10 leading-tight relative z-10">
-            지금, 첫 의도를 등록해보세요.
+            지금, 첫 검색의도를 등록해보세요.
           </h2>
           <p className="text-blue-100 text-xl max-w-2xl mx-auto mb-14 relative z-10 leading-relaxed">
             복잡한 절차 없이 대화 한 번이면 충분합니다.<br />
-            당신의 의도가 보상으로 돌아오는 경험을 시작하세요.
+            당신의 검색의도가 보상으로 돌아오는 경험을 시작하세요.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
             <Link

@@ -346,7 +346,7 @@ export default function RewardsPage() {
           </div>
           <div className="rounded-2xl border border-white/10 bg-slate-900 p-4 text-center">
             <Zap className="mx-auto mb-2 h-5 w-5 text-blue-400" />
-            <p className="text-xs text-slate-500 mb-1">등록한 의도</p>
+            <p className="text-xs text-slate-500 mb-1">등록한 검색의도</p>
             <p className="text-lg font-bold text-white">{data?.totalIntents ?? 0}건</p>
           </div>
         </div>
@@ -457,7 +457,7 @@ export default function RewardsPage() {
           <ul className="space-y-1 text-xs text-slate-500">
             <li>• 매칭된 광고주 사이트에 20초 이상 체류 시 자동으로 포인트가 지급됩니다.</li>
             <li>• 광고주마다 방문당 지급 포인트(1~1,000P)가 다릅니다.</li>
-            <li>• 동일한 의도에 대해 중복 적립은 불가합니다.</li>
+            <li>• 동일한 검색의도에 대해 중복 적립은 불가합니다.</li>
           </ul>
         </div>
       </main>

@@ -24,13 +24,13 @@ export default function Home() {
             Intent Exchange Platform
           </span>
           <h1 className="max-w-4xl text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-100 to-slate-400 sm:text-7xl break-keep mt-2">
-            당신의 의도에 가격이 붙습니다
+            검색의도에 가격이 붙습니다
           </h1>
         </div>
 
         {/* Subtext */}
         <p className="mb-10 max-w-2xl text-lg leading-relaxed text-slate-400 sm:text-xl break-keep">
-          사고 싶은 것, 알아보고 싶은 것을 등록하세요.<br className="hidden sm:block" />
+          사고 싶은 것, 알아보고 싶은 것을 알려주세요.<br className="hidden sm:block" />
           AI가 최적의 정보를 매칭하고, 당신의 데이터에 정당한 보상을 지급합니다.
         </p>
 
@@ -41,7 +41,7 @@ export default function Home() {
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-blue-600 px-8 py-4 font-semibold text-white transition-all hover:bg-blue-500 hover:shadow-[0_0_40px_8px_rgba(37,99,235,0.3)] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] transition-transform duration-500 group-hover:translate-x-[100%]" />
-            의도 등록하기
+            검색의도 등록하기
             <svg
               className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
               fill="none"
@@ -57,7 +57,7 @@ export default function Home() {
           href="/how-it-works"
           className="mt-4 text-sm text-slate-500 hover:text-blue-400 transition-colors"
         >
-          내 데이터는 얼마의 가치가 있을까? →
+          How it works? →
         </Link>
       </main>
 
