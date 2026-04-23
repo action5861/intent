@@ -64,8 +64,22 @@ export class DatabaseService {
       const advertiser = await tx.advertiser.findUnique({ where: { id: intent.matchedAdvertiserId! } });
       if (!advertiser) throw new NotFoundException(`Advertiser [${intent.matchedAdvertiserId}] not found`);
 
-      // 광고주가 설정한 방문당 리워드 (최대 1,000P 강제 캡)
-      const rewardAmount = Math.min(advertiser.rewardPerVisit, 1000);
+      // 일일 적립 상한 체크 (오늘 0시 UTC 기준)
+      const DAILY_REWARD_CAP = 1000;
+      const todayStart = new Date();
+      todayStart.setUTCHours(0, 0, 0, 0);
+      const todayEarnings = await tx.intent.aggregate({
+        where: { userId: intent.userId, status: 'SLA_VERIFIED', slaVerifiedAt: { gte: todayStart } },
+        _sum: { paidReward: true },
+      });
+      const earnedToday = todayEarnings._sum.paidReward ?? 0;
+      const remainingCap = DAILY_REWARD_CAP - earnedToday;
+      if (remainingCap <= 0) {
+        throw new BadRequestException(`오늘 최대 적립 한도(${DAILY_REWARD_CAP}P)에 도달했습니다. 내일 다시 이용해주세요.`);
+      }
+
+      // 광고주 단가 vs 일일 잔여 한도 중 낮은 값 지급
+      const rewardAmount = Math.min(advertiser.rewardPerVisit, remainingCap);
 
       if (advertiser.remainingBudget < rewardAmount) {
         throw new BadRequestException(`Advertiser [${advertiser.id}] has insufficient budget`);

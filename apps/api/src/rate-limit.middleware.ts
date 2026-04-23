@@ -4,12 +4,13 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from './redis/redis.service';
 
-const DAILY_LIMIT = 2; // [배포준비 #1] 테스트용 9999에서 정식 제한값 2로 복원
+const DAILY_LIMIT = 5;
 const TTL_SECONDS = 24 * 60 * 60; // 24시간
 
 /**
  * 사용자별 의도 상장 횟수 제한
- * Authorization 헤더의 JWT에서 userId(sub) 추출 → 24시간 내 최대 2회 허용
+ * Authorization 헤더의 JWT에서 userId(sub) 추출 → 24시간 내 최대 5회 허용
+ * 일일 보상 상한(1000P)은 SLA 정산 시점에 별도 적용
  */
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
@@ -42,7 +43,7 @@ export class RateLimitMiddleware implements NestMiddleware {
       if (currentCount > DAILY_LIMIT) {
         return res.status(HttpStatus.TOO_MANY_REQUESTS).json({
           success: false,
-          message: `하루 최대 2회까지 의도를 상장할 수 있습니다. 내일 다시 시도해주세요.`,
+          message: `하루 최대 5회까지 의도를 상장할 수 있습니다. 내일 다시 시도해주세요.`,
           remainingToday: 0,
         });
       }
