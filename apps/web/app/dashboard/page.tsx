@@ -10,32 +10,32 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.
 
 // 사이트별 검색 URL 템플릿 — {query} 자리에 사용자 rawText가 삽입됨
 const SEARCH_URL_TEMPLATES: Record<string, string> = {
-  "coupang.com":        "https://www.coupang.com/np/search?q={query}",
-  "naver.com":          "https://search.shopping.naver.com/search/all?query={query}",
+  "coupang.com": "https://www.coupang.com/np/search?q={query}",
+  "naver.com": "https://search.shopping.naver.com/search/all?query={query}",
   "shopping.naver.com": "https://search.shopping.naver.com/search/all?query={query}",
-  "gmarket.co.kr":      "https://browse.gmarket.co.kr/search?keyword={query}",
-  "11st.co.kr":         "https://www.11st.co.kr/search/searchList.tmall?q={query}",
-  "auction.co.kr":      "https://www.auction.co.kr/Search/Product/Search.aspx?keyword={query}",
-  "ssg.com":            "https://www.ssg.com/search.ssg?query={query}",
-  "kurly.com":          "https://www.kurly.com/search?sword={query}",
-  "ohou.se":            "https://ohou.se/search?query={query}",
-  "interpark.com":      "https://shopping.interpark.com/search/item.do?q={query}",
-  "tmon.co.kr":         "https://search.tmon.co.kr/search?q={query}",
-  "wemakeprice.com":    "https://front.wemakeprice.com/search?searchword={query}",
-  "aladin.co.kr":       "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord={query}",
-  "yes24.com":          "https://www.yes24.com/Product/Search?domain=ALL&query={query}",
-  "kyobobook.co.kr":    "https://search.kyobobook.co.kr/search?keyword={query}",
-  "daum.net":           "https://search.daum.net/search?q={query}",
-  "google.co.kr":       "https://www.google.co.kr/search?q={query}",
-  "bing.com":           "https://www.bing.com/search?q={query}",
-  "zigbang.com":        "https://www.zigbang.com/search?q={query}",
-  "fastcampus.co.kr":   "https://fastcampus.co.kr/search?keyword={query}",
-  "daangn.com":         "https://www.daangn.com/search/{query}",
-  "jobkorea.co.kr":     "https://www.jobkorea.co.kr/Search/?stext={query}",
-  "saramin.co.kr":      "https://www.saramin.co.kr/zf_user/search/recruit?searchword={query}",
-  "netflix.com":        "https://www.netflix.com/search?q={query}",
-  "wavve.com":          "https://www.wavve.com/search?q={query}",
-  "tving.com":          "https://www.tving.com/search?keyword={query}",
+  "gmarket.co.kr": "https://browse.gmarket.co.kr/search?keyword={query}",
+  "11st.co.kr": "https://www.11st.co.kr/search/searchList.tmall?q={query}",
+  "auction.co.kr": "https://www.auction.co.kr/Search/Product/Search.aspx?keyword={query}",
+  "ssg.com": "https://www.ssg.com/search.ssg?query={query}",
+  "kurly.com": "https://www.kurly.com/search?sword={query}",
+  "ohou.se": "https://ohou.se/search?query={query}",
+  "interpark.com": "https://shopping.interpark.com/search/item.do?q={query}",
+  "tmon.co.kr": "https://search.tmon.co.kr/search?q={query}",
+  "wemakeprice.com": "https://front.wemakeprice.com/search?searchword={query}",
+  "aladin.co.kr": "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord={query}",
+  "yes24.com": "https://www.yes24.com/Product/Search?domain=ALL&query={query}",
+  "kyobobook.co.kr": "https://search.kyobobook.co.kr/search?keyword={query}",
+  "daum.net": "https://search.daum.net/search?q={query}",
+  "google.co.kr": "https://www.google.co.kr/search?q={query}",
+  "bing.com": "https://www.bing.com/search?q={query}",
+  "zigbang.com": "https://www.zigbang.com/search?q={query}",
+  "fastcampus.co.kr": "https://fastcampus.co.kr/search?keyword={query}",
+  "daangn.com": "https://www.daangn.com/search/{query}",
+  "jobkorea.co.kr": "https://www.jobkorea.co.kr/Search/?stext={query}",
+  "saramin.co.kr": "https://www.saramin.co.kr/zf_user/search/recruit?searchword={query}",
+  "netflix.com": "https://www.netflix.com/search?q={query}",
+  "wavve.com": "https://www.wavve.com/search?q={query}",
+  "tving.com": "https://www.tving.com/search?keyword={query}",
 };
 
 /** siteUrl + 사용자 검색어로 검색 직행 URL 생성. 템플릿 없으면 siteUrl 그대로 반환 */
@@ -260,7 +260,7 @@ export default function UserDashboardPage() {
       }
     }
     return map;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fallbackIntentIds]);
 
   useEffect(() => {
@@ -412,7 +412,7 @@ export default function UserDashboardPage() {
                   className="w-full rounded-xl border border-white/10 bg-slate-800 px-3 py-2.5 text-sm text-white focus:border-green-500 focus:outline-none"
                 >
                   <option value="">선택하세요</option>
-                  {["카카오뱅크","토스뱅크","케이뱅크","국민은행","신한은행","하나은행","우리은행","농협은행","기업은행","SC제일은행","씨티은행","대구은행","부산은행","경남은행","광주은행","전북은행","제주은행","우체국"].map((b) => (
+                  {["카카오뱅크", "토스뱅크", "케이뱅크", "국민은행", "신한은행", "하나은행", "우리은행", "농협은행", "기업은행", "SC제일은행", "씨티은행", "대구은행", "부산은행", "경남은행", "광주은행", "전북은행", "제주은행", "우체국"].map((b) => (
                     <option key={b} value={b}>{b}</option>
                   ))}
                 </select>

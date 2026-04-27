@@ -45,7 +45,7 @@ function SlaVisitInner() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: payload,
       keepalive: true,
-    }).catch(() => {});
+    }).catch(() => { });
   }, [getElapsedMs]);
 
   const stopTimer = useCallback(() => {
@@ -68,7 +68,7 @@ function SlaVisitInner() {
         verifySla(ms);
       }
     }, 100);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopTimer, getElapsedMs]);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ function SlaVisitInner() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intentId, siteUrl]);
 
   const verifySla = async (actualElapsedMs: number) => {
