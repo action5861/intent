@@ -27,8 +27,9 @@ export default function Home() {
     "노트북 추천해줘",
   ];
   const [typedText, setTypedText] = useState("");
-  const [price, setPrice] = useState(0);
   const [isTypingDone, setIsTypingDone] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+  const [price, setPrice] = useState(0);
 
   // Typing effect
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function Home() {
     setTypedText("");
     setIsTypingDone(false);
     setPrice(0);
+    setShowBadge(false);
     
     const typingInterval = setInterval(() => {
       if (i < typingSequence.length) {
@@ -44,6 +46,7 @@ export default function Home() {
       } else {
         clearInterval(typingInterval);
         setIsTypingDone(true);
+        setTimeout(() => setShowBadge(true), 1000); // 1 second delay
       }
     }, 120);
 
@@ -52,7 +55,7 @@ export default function Home() {
 
   // Number rolling effect
   useEffect(() => {
-    if (!isTypingDone) return;
+    if (!showBadge) return;
 
     const targetPrice = 500;
     const duration = 1500; // 1.5 seconds
@@ -77,7 +80,7 @@ export default function Home() {
     animationFrameId = requestAnimationFrame(updatePrice);
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isTypingDone]);
+  }, [showBadge]);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#182848] to-[#4b6cb7] font-sans overflow-hidden selection:bg-blue-500/30">
@@ -171,7 +174,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="relative flex w-full items-center justify-between rounded-2xl border border-white/20 bg-white/5 p-4 sm:p-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl z-10"
+              className="relative flex w-full h-[4.5rem] sm:h-[5.5rem] items-center justify-between rounded-2xl border border-white/20 bg-white/5 px-4 sm:px-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl z-10"
             >
               <div className="flex items-center gap-3 flex-1 overflow-hidden">
                 <Search className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 shrink-0" />
@@ -184,13 +187,13 @@ export default function Home() {
               </div>
               
               {/* Dynamic Price Tag */}
-              <div className="shrink-0 flex items-center min-h-[3rem]">
-                {isTypingDone && (
+              <div className="shrink-0 flex items-center min-h-[3rem] min-w-[140px] sm:min-w-[180px] justify-end">
+                {showBadge && (
                   <motion.div 
-                    initial={{ opacity: 0, x: 30, scale: 0.9 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative ml-2 sm:ml-4 flex items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-1.5 sm:py-2 pl-5 sm:pl-7 pr-3 sm:pr-4 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative flex items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-1.5 sm:py-2 pl-5 sm:pl-7 pr-3 sm:pr-4 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
                   >
                     {/* Sparkle effect */}
                     <motion.div 
