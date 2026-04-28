@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, ExternalLink, Loader2, Sparkles, Gift } from "lucide-react";
+import BackButton from "../components/BackButton";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 const REQUIRED_MS = 20000;
 
@@ -168,6 +169,9 @@ function SlaVisitInner() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4">
+      <div className="absolute top-4 left-4">
+        <BackButton />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <Sparkles className="h-5 w-5 text-blue-400" />

@@ -6,9 +6,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Coins, Gift, ArrowLeft, Sparkles, ShoppingBag, TrendingUp, Zap,
+  Coins, Gift, Sparkles, ShoppingBag, TrendingUp, Zap,
   ArrowDownToLine, X, Loader2, Clock, CheckCircle, XCircle, Wallet,
 } from "lucide-react";
+import BackButton from "../components/BackButton";
 
 interface RewardHistory {
   intentId: string;
@@ -285,9 +286,7 @@ export default function RewardsPage() {
 
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-white/10 bg-slate-950/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="text-slate-400 hover:text-white transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+          <BackButton />
           <Sparkles className="h-5 w-5 text-blue-400" />
           <span className="text-xl font-bold tracking-tight">리워드 포인트</span>
         </div>

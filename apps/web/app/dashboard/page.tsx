@@ -5,6 +5,7 @@ import { Search, Sparkles, Clock, CheckCircle2, Bot, RefreshCw, Megaphone, Exter
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
+import BackButton from "../components/BackButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 
@@ -462,6 +463,7 @@ export default function UserDashboardPage() {
       )}
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-white/10 bg-slate-950/80 px-6 backdrop-blur-md">
         <div className="flex items-center gap-2">
+          <BackButton />
           <Sparkles className="h-5 w-5 text-blue-400" />
           <span className="text-xl font-bold tracking-tight">Intendex Dashboard</span>
         </div>

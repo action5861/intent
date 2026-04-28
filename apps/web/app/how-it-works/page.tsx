@@ -5,6 +5,7 @@ import { Shield, Scale, Zap, Globe, ChevronDown, Menu, X, ChevronLeft, ChevronRi
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import BackButton from "../components/BackButton";
 
 /* ── 7단계 가이드 슬라이더 ───────────────────────────── */
 const GUIDE_SLIDES = [
@@ -195,9 +196,12 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <button className="md:hidden text-white" onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <BackButton />
+          <button className="text-white" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {isOpen && (
