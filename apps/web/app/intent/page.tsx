@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { Sparkles, Bot, Send, ArrowRight, CheckCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackButton from "../components/BackButton";
+import { POPULAR_INTENTS } from "./constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 
@@ -29,6 +30,8 @@ export default function IntentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRejected, setIsRejected] = useState(false); // [필터링 #2] 마지막 응답이 reject였는지
   const [userId, setUserId] = useState<string | null>(null);
+  const [showExamples, setShowExamples] = useState(true);
+  const [examplesVisible, setExamplesVisible] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -52,14 +55,19 @@ export default function IntentPage() {
     }
   }, [state, isLoading]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (overrideText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || state !== "chatting" || isLoading) return;
+
+    if (showExamples) {
+      setExamplesVisible(false);
+      setTimeout(() => setShowExamples(false), 300);
+    }
 
     const userMessage: Message = { role: "user", content: text };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    setInput("");
+    if (!overrideText) setInput("");
     setIsLoading(true);
     setIsRejected(false); // [필터링 #3] 새 메시지 입력 시 reject 상태 초기화 → 자연스럽게 대화 이어감
 
@@ -141,6 +149,8 @@ export default function IntentPage() {
     setState("chatting");
     setIsRejected(false);
     setEnrichedText("");
+    setExamplesVisible(true);
+    setShowExamples(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -185,23 +195,49 @@ export default function IntentPage() {
         {/* Messages */}
         <div className="flex-1 space-y-4 overflow-y-auto pb-4">
           {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-              {/* Avatar */}
-              {msg.role === "assistant" && (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/20 border border-blue-500/30">
-                  <Bot className="h-4 w-4 text-blue-400" />
+            <Fragment key={i}>
+              <div className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                {/* Avatar */}
+                {msg.role === "assistant" && (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600/20 border border-blue-500/30">
+                    <Bot className="h-4 w-4 text-blue-400" />
+                  </div>
+                )}
+                {/* Bubble */}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user"
+                    ? "rounded-tr-sm bg-blue-600 text-white"
+                    : "rounded-tl-sm bg-slate-800 text-slate-100 border border-white/5"
+                    }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+
+              {/* 인기 예시 카드 — 첫 AI 메시지 직후에만 표시 */}
+              {i === 0 && showExamples && (
+                <div
+                  className={`ml-11 transition-opacity duration-300 ${examplesVisible ? "opacity-100" : "opacity-0"}`}
+                >
+                  <p className="mb-2 text-xs text-gray-500">💡 이런 것도 등록할 수 있어요!</p>
+                  <div
+                    className="scrollbar-hide flex gap-3 overflow-x-auto pb-2"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {POPULAR_INTENTS.map((item) => (
+                      <button
+                        key={item.text}
+                        onClick={() => sendMessage(item.text)}
+                        className="shrink-0 min-w-[180px] cursor-pointer rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur-sm transition-colors hover:bg-white/10"
+                      >
+                        <span className="text-xl">{item.emoji}</span>
+                        <p className="mt-1 text-sm text-gray-300">{item.text}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
-              {/* Bubble */}
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user"
-                  ? "rounded-tr-sm bg-blue-600 text-white"
-                  : "rounded-tl-sm bg-slate-800 text-slate-100 border border-white/5"
-                  }`}
-              >
-                {msg.content}
-              </div>
-            </div>
+            </Fragment>
           ))}
 
           {/* Loading indicator */}
@@ -284,7 +320,7 @@ export default function IntentPage() {
               className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none disabled:opacity-50"
             />
             <button
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-all hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600"
             >
