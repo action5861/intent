@@ -1,9 +1,10 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { DatabaseService } from '../database/database.service';
 import { AiService } from '../ai/ai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { calcJaccardSimilarity, extractKeywords } from '../common/similarity.util';
 
 @Injectable()
 export class IntentsService {
@@ -44,7 +45,38 @@ export class IntentsService {
       intentData.category = 'UNKNOWN';
     }
 
-    // 2. PostgreSQL에 영구 저장 (핵심 추가)
+    // 2. 중복 의도 체크 — Jaccard 유사도 70% 이상이면 거부
+    const newKeywords = extractKeywords(
+      parsedIntent.details?.keywords ?? [],
+      intentDto.enrichedText ?? intentDto.rawText,
+    );
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentIntents = await this.prisma.intent.findMany({
+      where: {
+        userId: intentDto.userId,
+        deletedByUser: false,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      select: { id: true, details: true, enrichedText: true, rawText: true },
+    });
+
+    for (const existing of recentIntents) {
+      const existingDetails = existing.details as { keywords?: string[] } | null;
+      const existingKeywords = extractKeywords(
+        existingDetails?.keywords ?? [],
+        existing.enrichedText ?? existing.rawText,
+      );
+      const similarity = calcJaccardSimilarity(newKeywords, existingKeywords);
+      if (similarity >= 0.7) {
+        this.logger.warn(
+          `[Duplicate] Intent rejected for user [${intentDto.userId}] — similarity ${(similarity * 100).toFixed(1)}% with intent [${existing.id}]`,
+        );
+        throw new ConflictException('이미 유사한 의도가 등록되어 있습니다. 다른 관심사를 등록해주세요.');
+      }
+    }
+
+    // 4. PostgreSQL에 영구 저장 (핵심 추가)
     await this.prisma.intent.create({
       data: {
         id: intentId,
@@ -60,19 +92,19 @@ export class IntentsService {
       },
     });
 
-    // 3. Redis 캐시에 임시 저장 (실시간 매칭용 TTL 10분)
+    // 5. Redis 캐시에 임시 저장 (실시간 매칭용 TTL 10분)
     await this.redisService.setCache(`intent:data:${intentId}`, intentData, 600);
 
-    // 4. Pub/Sub — 카테고리 채널 브로드캐스트 (기존 방식 유지)
+    // 6. Pub/Sub — 카테고리 채널 브로드캐스트 (기존 방식 유지)
     await this.redisService.publishIntent(intentData.category, intentData);
 
-    // 5. 사용자의 totalIntents 카운트 증가
+    // 7. 사용자의 totalIntents 카운트 증가
     await this.prisma.user.updateMany({
       where: { id: intentDto.userId },
       data: { totalIntents: { increment: 1 } },
     });
 
-    // 6. AI 기반 선별 매칭 — 비동기로 실행 (상장 응답 속도에 영향 없음)
+    // 8. AI 기반 선별 매칭 — 비동기로 실행 (상장 응답 속도에 영향 없음)
     this.runAiMatching(intentId, intentData, parsedIntent).catch((err) =>
       this.logger.error(`AI matching failed for intent [${intentId}]`, err),
     );

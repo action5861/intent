@@ -118,7 +118,8 @@ export default function IntentPage() {
         const errData = await res.json().catch(() => ({}));
         const errMsg = errData.message ?? `서버 오류: ${res.status}`;
         setMessages((prev) => [...prev, { role: "assistant", content: errMsg }]);
-        setState("ready");
+        // 중복 의도(409)는 새 의도를 작성하도록 chatting 상태로 전환
+        setState(res.status === 409 ? "chatting" : "ready");
         return;
       }
 
