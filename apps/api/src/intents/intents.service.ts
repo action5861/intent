@@ -4,7 +4,7 @@ import { DatabaseService } from '../database/database.service';
 import { AiService } from '../ai/ai.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
-import { calcJaccardSimilarity, extractKeywords } from '../common/similarity.util';
+import { calcJaccardSimilarity, extractKeywords, getDuplicatePeriodDays } from '../common/similarity.util';
 
 @Injectable()
 export class IntentsService {
@@ -45,18 +45,19 @@ export class IntentsService {
       intentData.category = 'UNKNOWN';
     }
 
-    // 2. 중복 의도 체크 — Jaccard 유사도 70% 이상이면 거부
+    // 2. 중복 의도 체크 — 카테고리별 기간 내 Jaccard 유사도 70% 이상이면 거부
     const newKeywords = extractKeywords(
       parsedIntent.details?.keywords ?? [],
       intentDto.enrichedText ?? intentDto.rawText,
     );
 
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const duplicateDays = getDuplicatePeriodDays(intentData.category);
+    const duplicateSince = new Date(Date.now() - duplicateDays * 24 * 60 * 60 * 1000);
     const recentIntents = await this.prisma.intent.findMany({
       where: {
         userId: intentDto.userId,
         deletedByUser: false,
-        createdAt: { gte: thirtyDaysAgo },
+        createdAt: { gte: duplicateSince },
       },
       select: { id: true, details: true, enrichedText: true, rawText: true },
     });

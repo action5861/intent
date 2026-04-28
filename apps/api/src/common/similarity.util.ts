@@ -17,3 +17,14 @@ export function extractKeywords(keywords: string[], fallbackText: string): strin
   if (keywords.length > 0) return keywords;
   return fallbackText.split(/\s+/).filter((w) => w.length >= 2);
 }
+
+export const DUPLICATE_PERIOD_DAYS: Record<string, number> = {
+  '식품': 7,
+  '뷰티': 14,
+};
+
+export const DEFAULT_DUPLICATE_DAYS = 30;
+
+export function getDuplicatePeriodDays(category: string): number {
+  return DUPLICATE_PERIOD_DAYS[category] ?? DEFAULT_DUPLICATE_DAYS;
+}
