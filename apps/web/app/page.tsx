@@ -2,55 +2,64 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
+const typingSequence = [
+  "ㄴ",
+  "노",
+  "녿",
+  "노트",
+  "노틉",
+  "노트부",
+  "노트북",
+  "노트북 ",
+  "노트북 ㅊ",
+  "노트북 추",
+  "노트북 춫",
+  "노트북 추천",
+  "노트북 추천ㅎ",
+  "노트북 추천하",
+  "노트북 추천해",
+  "노트북 추천햊",
+  "노트북 추천해주",
+  "노트북 추천해줘",
+];
+
 export default function Home() {
-  const typingSequence = [
-    "ㄴ",
-    "노",
-    "녿",
-    "노트",
-    "노틉",
-    "노트부",
-    "노트북",
-    "노트북 ",
-    "노트북 ㅊ",
-    "노트북 추",
-    "노트북 춫",
-    "노트북 추천",
-    "노트북 추천ㅎ",
-    "노트북 추천하",
-    "노트북 추천해",
-    "노트북 추천햊",
-    "노트북 추천해주",
-    "노트북 추천해줘",
-  ];
   const [typedText, setTypedText] = useState("");
   const [isTypingDone, setIsTypingDone] = useState(false);
   const [showBadge, setShowBadge] = useState(false);
   const [price, setPrice] = useState(0);
+  const indexRef = useRef(0);
 
   // Typing effect
   useEffect(() => {
-    let i = 0;
+    let mounted = true;
+    indexRef.current = 0;
     setTypedText("");
     setIsTypingDone(false);
     setPrice(0);
     setShowBadge(false);
-    
+
     const typingInterval = setInterval(() => {
-      if (i < typingSequence.length) {
-        setTypedText(typingSequence[i]);
-        i++;
+      if (!mounted) return;
+      if (indexRef.current < typingSequence.length) {
+        setTypedText(typingSequence[indexRef.current]);
+        indexRef.current++;
       } else {
         clearInterval(typingInterval);
         setIsTypingDone(true);
-        setTimeout(() => setShowBadge(true), 1000); // 1 second delay
+        setTimeout(() => {
+          if (mounted) setShowBadge(true);
+        }, 1000);
       }
     }, 120);
 
-    return () => clearInterval(typingInterval);
+    return () => {
+      mounted = false;
+      clearInterval(typingInterval);
+    };
   }, []);
 
   // Number rolling effect
