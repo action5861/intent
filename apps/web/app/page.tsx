@@ -179,33 +179,33 @@ export default function Home() {
             />
 
             {/* Search Input Box */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="relative flex w-full h-[4.5rem] sm:h-[5.5rem] items-center justify-between rounded-2xl border border-white/20 bg-white/5 px-4 sm:px-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl z-10"
+              className="relative flex w-full h-[3.5rem] sm:h-[5.5rem] items-center justify-between rounded-2xl border border-white/20 bg-white/5 px-4 sm:px-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl z-10"
             >
               <div className="flex items-center gap-3 flex-1 overflow-hidden">
                 <Search className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 shrink-0" />
                 <div className="flex items-center min-w-0">
-                  <span className="text-lg sm:text-2xl font-medium text-white truncate">
+                  <span className="text-base sm:text-2xl font-medium text-white">
                     {typedText}
                     {!isTypingDone && <span className="ml-[1px] animate-pulse border-r-2 border-white/70 h-6 inline-block align-middle" />}
                   </span>
                 </div>
               </div>
-              
+
               {/* Dynamic Price Tag */}
-              <div className="shrink-0 flex items-center min-h-[3rem] min-w-[140px] sm:min-w-[180px] justify-end">
+              <div className="shrink-0 flex items-center justify-end">
                 {showBadge && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     className="relative flex items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 py-1.5 sm:py-2 pl-5 sm:pl-7 pr-3 sm:pr-4 shadow-[0_0_20px_rgba(236,72,153,0.4)]"
                   >
                     {/* Sparkle effect */}
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0.8, scale: 0 }}
                       animate={{ opacity: 0, scale: 2 }}
                       transition={{ duration: 1.2, ease: "easeOut" }}
@@ -214,11 +214,11 @@ export default function Home() {
 
                     {/* Punched hole effect */}
                     <div className="absolute left-1.5 sm:left-2 top-1/2 h-2.5 w-2.5 sm:h-3 sm:w-3 -translate-y-1/2 rounded-full bg-[#0A0F24] shadow-inner border border-white/10" />
-                    
+
                     {/* Content */}
                     <div className="flex flex-col items-end">
-                      <span className="text-[10px] sm:text-xs font-bold text-white/90 tracking-wider">예상 거래 가치</span>
-                      <span className="text-xl sm:text-2xl font-black tabular-nums text-white drop-shadow-md leading-tight">
+                      <span className="text-[8px] sm:text-xs font-bold text-white/90 tracking-wider">예상 거래 가치</span>
+                      <span className="text-lg sm:text-2xl font-black tabular-nums text-white drop-shadow-md leading-tight">
                         ₩{price.toLocaleString('ko-KR')}
                       </span>
                     </div>
