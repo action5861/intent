@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import BackButton from "../components/BackButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-production-6df5.up.railway.app";
 
@@ -50,7 +51,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-6 py-12 lg:px-8 font-sans">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-slate-950 px-6 py-12 lg:px-8 font-sans">
+      <div className="absolute top-4 left-4">
+        <BackButton />
+      </div>
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 border border-blue-500/30">
           <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
